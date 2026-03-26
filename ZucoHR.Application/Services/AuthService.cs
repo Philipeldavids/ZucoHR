@@ -1,0 +1,108 @@
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using ZucoHR.Application.Interfaces;
+using ZucoHR.Domain.Entities;
+using ZucoHR.Infrastructure.Interfaces;
+
+namespace ZucoHR.Application.Services
+{
+
+    public class AuthService : IAuthService
+    {
+        private readonly IUserRepository _users;
+        private readonly IRefreshTokenRepository _refreshRepo;
+        private readonly IConfiguration _config;
+
+        public AuthService(IUserRepository users, IRefreshTokenRepository refreshRepo, IConfiguration config)
+        {
+            _users = users;
+            _refreshRepo = refreshRepo;
+            _config = config;
+        }
+
+        public async Task<User> RegisterAsync(string email, string password, string role = "Employee")
+        {
+            var existing = await _users.GetByEmailAsync(email);
+            if (existing != null) throw new InvalidOperationException("Email already exists");
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                Email = email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+                Role = role
+            };
+            return await _users.AddAsync(user);
+        }
+
+        public async Task<(string accessToken, string refreshToken)> SignInAsync(string email, string password)
+        {
+            var user = await _users.GetByEmailAsync(email);
+            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+                throw new UnauthorizedAccessException("Invalid credentials");
+
+            var access = GenerateAccessToken(user);
+            var refresh = await GenerateAndStoreRefreshToken(user);
+
+            return (access, refresh);
+        }
+
+        public async Task<(string accessToken, string refreshToken)> RefreshAsync(string refreshToken)
+        {
+            var stored = await _refreshRepo.GetByTokenAsync(refreshToken);
+            if (stored == null || stored.IsRevoked || stored.ExpiresAt <= DateTime.UtcNow)
+                throw new UnauthorizedAccessException("Invalid refresh token");
+
+            var user = stored.User!;
+            // revoke old token
+            await _refreshRepo.RevokeAsync(stored);
+
+            var access = GenerateAccessToken(user);
+            var newRefresh = await GenerateAndStoreRefreshToken(user);
+
+            return (access, newRefresh);
+        }
+
+        private string GenerateAccessToken(User user)
+        {
+            var jwt = _config.GetSection("Jwt");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var claims = new[]
+            {
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(ClaimTypes.Role, user.Role),
+            new Claim("employeeId", user.EmployeeId?.ToString() ?? string.Empty)
+        };
+            var token = new JwtSecurityToken(
+                issuer: jwt["Issuer"],
+                audience: jwt["Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(double.Parse(jwt["AccessTokenExpiryMinutes"])),
+                signingCredentials: creds
+            );
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        private async Task<string> GenerateAndStoreRefreshToken(User user)
+        {
+            var jwt = _config.GetSection("Jwt");
+            var refreshExpiryDays = int.Parse(jwt["RefreshTokenExpiryDays"]);
+            var tokenStr = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+            var rt = new RefreshToken
+            {
+                Id = Guid.NewGuid(),
+                Token = tokenStr,
+                ExpiresAt = DateTime.UtcNow.AddDays(refreshExpiryDays),
+                IsRevoked = false,
+                UserId = user.Id
+            };
+            await _refreshRepo.AddAsync(rt);
+            return tokenStr;
+        }
+    }
+}
