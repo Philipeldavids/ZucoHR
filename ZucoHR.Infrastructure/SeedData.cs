@@ -27,7 +27,7 @@ namespace ZucoHR.Infrastructure
             {
                 var admin = new User
                 {
-                    Id = Guid.NewGuid(),
+                   
                     Email = "admin@zucohr.local",
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("ChangeMe123!"),
                     Role = "Admin"
@@ -45,7 +45,11 @@ namespace ZucoHR.Infrastructure
                     LastName = "Doe",
                     Email = "john.doe@zucohr.local",
                     HireDate = DateTime.UtcNow.AddYears(-1),
-                    BaseSalary = 250000
+                    BasicSalary = 250000,
+                    Allowances = 100000,
+                    Department = "IT",
+                    UserId = Guid.NewGuid().ToString(),
+                    OrganizationId = Guid.NewGuid()
                 });
             }
 

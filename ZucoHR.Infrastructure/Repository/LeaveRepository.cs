@@ -29,19 +29,20 @@ namespace ZucoHR.Infrastructure.Repository
             return request;
         }
 
-        public async Task<LeaveRequest?> GetByIdAsync(Guid id)
+        public async Task<LeaveRequest?> GetByIdAsync(Guid id, Guid OrgId)
         {
             return await _context.LeaveRequests
-                .AsNoTracking()
+                .AsNoTracking().
+                Where(x=>x.OrganizationId == OrgId)
                 .Include(l => l.Employee)
                 .FirstOrDefaultAsync(l => l.Id == id);
         }
 
-        public async Task<IEnumerable<LeaveRequest>> GetByEmployeeAsync(Guid employeeId)
+        public async Task<IEnumerable<LeaveRequest>> GetByEmployeeAsync(Guid employeeId, Guid orgId)
         {
             return await _context.LeaveRequests
                 .AsNoTracking()
-                .Where(l => l.EmployeeId == employeeId)
+                .Where(l => l.EmployeeId == employeeId && l.OrganizationId == orgId)
                 .OrderByDescending(l => l.StartDate)
                 .ToListAsync();
         }

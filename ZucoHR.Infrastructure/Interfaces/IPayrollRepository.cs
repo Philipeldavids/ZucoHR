@@ -11,15 +11,15 @@ namespace ZucoHR.Infrastructure.Interfaces
     {
         // PayRuns
         Task<PayRun> AddPayRunAsync(PayRun payRun);
-        Task<PayRun?> GetPayRunByIdAsync(Guid id);
-        Task<IEnumerable<PayRun>> GetAllPayRunsAsync();
+        Task<PayRun?> GetPayRunByIdAsync(Guid id, Guid OrgId);
+        Task<IEnumerable<PayRun>> GetAllPayRunsAsync(Guid OrgId);
         Task UpdatePayRunAsync(PayRun payRun);
 
         // Payslips
         Task<Payslip> AddPayslipAsync(Payslip payslip);
-        Task<Payslip?> GetPayslipByIdAsync(Guid id);
-        Task<IEnumerable<Payslip>> GetPayslipsByPayRunAsync(Guid payRunId);
-        Task<IEnumerable<Payslip>> GetPayslipsByEmployeeAsync(Guid employeeId);
+        Task<Payslip?> GetPayslipByIdAsync(Guid id, Guid OrgId);
+        Task<IEnumerable<Payslip>> GetPayslipsByPayRunAsync(Guid payRunId, Guid OrgId);
+        Task<IEnumerable<Payslip>> GetPayslipsByEmployeeAsync(Guid employeeId, Guid OrgId);
         Task UpdatePayslipAsync(Payslip payslip);
 
         Task SaveChangesAsync();

@@ -14,11 +14,13 @@ namespace ZucoHR.Controllers
     {
         private readonly ILeaveService _leaveService;
         private readonly ILogger<LeaveController> _logger;
+        private readonly ITenantService _tenantService;
 
-        public LeaveController(ILeaveService leaveService, ILogger<LeaveController> logger)
+        public LeaveController(ILeaveService leaveService, ILogger<LeaveController> logger, ITenantService tenantService)
         {
             _leaveService = leaveService;
             _logger = logger;
+            _tenantService = tenantService;
         }
 
         /// <summary>

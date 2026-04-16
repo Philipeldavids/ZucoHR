@@ -9,7 +9,7 @@ namespace ZucoHR.Application.Interfaces
 {
     public interface IPayrollService
     {
-        Task<PayRun> GeneratePayRunAsync(DateTime start, DateTime end);
+        Task<PayRun> GeneratePayRun(DateTime start, DateTime end);
         Task<IEnumerable<PayRun>> GetAllPayRunsAsync();
         Task<PayRun?> GetPayRunAsync(Guid id);
         Task ApprovePayRunAsync(Guid id);

@@ -15,23 +15,25 @@ namespace ZucoHR.Application.Services
         private readonly ILeaveRepository _leaveRepository;
         private readonly IEmployeeRepository _employeeRepository; // optional, for validation
         private readonly ILogger<LeaveService> _logger;
-
+        private readonly ITenantService _tenantService;
         public LeaveService(
             ILeaveRepository leaveRepository,
             IEmployeeRepository employeeRepository,
-            ILogger<LeaveService> logger)
+            ILogger<LeaveService> logger,
+            ITenantService tenantService)
         {
             _leaveRepository = leaveRepository;
             _employeeRepository = employeeRepository;
             _logger = logger;
+            _tenantService = tenantService;
         }
 
         public async Task<LeaveRequest> RequestLeaveAsync(Guid employeeId, DateTime start, DateTime end, string reason)
         {
             if (start >= end)
                 throw new ArgumentException("Start date must be earlier than end date.");
-
-            var employee = await _employeeRepository.GetByIdAsync(employeeId);
+            var orgId = _tenantService.GetTenantId();
+            var employee = await _employeeRepository.GetByIdAsync(employeeId, orgId);
             if (employee == null)
                 throw new KeyNotFoundException("Employee not found.");
 
@@ -52,7 +54,8 @@ namespace ZucoHR.Application.Services
 
         public async Task ApproveAsync(Guid leaveId, Guid approverId)
         {
-            var leave = await _leaveRepository.GetByIdAsync(leaveId);
+            var orgId = _tenantService.GetTenantId();
+            var leave = await _leaveRepository.GetByIdAsync(leaveId, orgId);
             if (leave == null)
                 throw new KeyNotFoundException("Leave request not found.");
 
@@ -69,7 +72,8 @@ namespace ZucoHR.Application.Services
 
         public async Task RejectAsync(Guid leaveId, Guid approverId, string comment)
         {
-            var leave = await _leaveRepository.GetByIdAsync(leaveId);
+            var orgId = _tenantService.GetTenantId();
+            var leave = await _leaveRepository.GetByIdAsync(leaveId, orgId);
             if (leave == null)
                 throw new KeyNotFoundException("Leave request not found.");
 

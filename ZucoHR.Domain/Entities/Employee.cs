@@ -16,7 +16,9 @@ namespace ZucoHR.Domain.Entities
         public string LastName { get; set; } = null!;
         public string? Email { get; set; }
         public DateTime HireDate { get; set; }
-        public decimal BaseSalary { get; set; }
+        public decimal BasicSalary { get; set; }
+
+        public decimal Allowances { get; set; }
         public string? Position { get; set; }
     }
 }

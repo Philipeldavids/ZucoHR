@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Identity;
 using ZucoHR.Domain.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using ZucoHR.Application.Utilities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,9 +82,9 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<ILeaveRepository, LeaveRepository>();
 builder.Services.AddScoped<IPerformanceRepository, PerformanceRepository>();
-//builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
-//builder.Services.AddScoped<IRecruitmentRepository, RecruitmentRepository>();
-//builder.Services.AddScoped<IOnboardingRepository, OnboardingRepository>();
+builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
+builder.Services.AddScoped<IRecruitmentRepository, RecruitmentRepository>();
+builder.Services.AddScoped<IOnboardingRepository, OnboardingRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IPayrollRepository, PayrollRepository>();
 
@@ -92,11 +93,16 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<ILeaveService, LeaveService>();
 builder.Services.AddScoped<IPayrollService, PayrollService>();
-//builder.Services.AddScoped<IPerformanceService, PerformanceService>();
-//builder.Services.AddScoped<IExpenseService, ExpenseService>();
-//builder.Services.AddScoped<IRecruitmentService, RecruitmentService>();
-//builder.Services.AddScoped<IOnboardingService, OnboardingService>();
+builder.Services.AddScoped<IPerformanceService, PerformanceService>();
+builder.Services.AddScoped<IExpenseService, ExpenseService>();
+builder.Services.AddScoped<IRecruitmentService, RecruitmentService>();
+builder.Services.AddScoped<IOnboardingService, OnboardingService>();
+builder.Services.AddScoped<ITokenGenerator, TokenGenerator>();
 
+builder.Services.AddScoped<TenantContext>();
+builder.Services.AddScoped<ITenantService, TenantService>();
+
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 builder.Services.AddCors(options =>
 {
@@ -159,6 +165,7 @@ app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
+app.UseMiddleware<TenantMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
 

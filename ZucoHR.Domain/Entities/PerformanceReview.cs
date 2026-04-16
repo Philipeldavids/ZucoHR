@@ -10,11 +10,13 @@ namespace ZucoHR.Domain.Entities
     {
         public Guid Id { get; set; }
         public Guid EmployeeId { get; set; }
-        public Employee? Employee { get; set; }
         public Guid OrganizationId { get; set; }
+        public Employee? Employee { get; set; }
         public Guid ReviewerId { get; set; }
-        public DateTime ReviewDate { get; set; } = DateTime.UtcNow;
+        public string ReviewPeriod { get; set; }
         public string Summary { get; set; } = null!;
         public int Score { get; set; } // 1-5
+
+        public DateTime CreatedAt { get; set; }
     }
 }

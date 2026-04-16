@@ -12,23 +12,27 @@ namespace ZucoHR.Controllers
     public class EmployeesController : ControllerBase
     {
         private readonly IEmployeeService _employeeService;
+        private readonly ITenantService _tenantService;
 
-        public EmployeesController(IEmployeeService employeeService)
+        public EmployeesController(IEmployeeService employeeService, ITenantService tenantService)
         {
             _employeeService = employeeService;
+            _tenantService = tenantService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _employeeService.GetPagedAsync(page, pageSize);
+            var OrgID = _tenantService.GetTenantId();
+            var result = await _employeeService.GetPagedAsync(page, pageSize, OrgID);
             return Ok(result);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var employee = await _employeeService.GetByIdAsync(id);
+            var OrgID = _tenantService.GetTenantId();
+            var employee = await _employeeService.GetByIdAsync(id, OrgID);
             if (employee == null) return NotFound();
             return Ok(employee);
         }

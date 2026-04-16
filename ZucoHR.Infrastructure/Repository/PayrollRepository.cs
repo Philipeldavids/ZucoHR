@@ -26,16 +26,18 @@ namespace ZucoHR.Infrastructure.Repository
             return payRun;
         }
 
-        public async Task<PayRun?> GetPayRunByIdAsync(Guid id)
+        public async Task<PayRun?> GetPayRunByIdAsync(Guid id, Guid orgId)
         {
             return await _context.PayRuns
+                .Where(x=>x.OrganizationId == orgId)
                 .Include(p => p.Payslips)
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        public async Task<IEnumerable<PayRun>> GetAllPayRunsAsync()
+        public async Task<IEnumerable<PayRun>> GetAllPayRunsAsync(Guid OrgId)
         {
-            return await _context.PayRuns
+            return await _context.PayRuns.
+                Where(x=> x.OrganizationId == OrgId)
                 .Include(p => p.Payslips)
                 .OrderByDescending(p => p.PeriodStart)
                 .ToListAsync();
@@ -54,26 +56,27 @@ namespace ZucoHR.Infrastructure.Repository
             return payslip;
         }
 
-        public async Task<Payslip?> GetPayslipByIdAsync(Guid id)
+        public async Task<Payslip?> GetPayslipByIdAsync(Guid id, Guid OrgId)
         {
             return await _context.Payslips
+                .Where(x=>x.OrganizationId == OrgId)
                 .Include(p => p.Employee)
                 .Include(p => p.PayRun)
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        public async Task<IEnumerable<Payslip>> GetPayslipsByPayRunAsync(Guid payRunId)
+        public async Task<IEnumerable<Payslip>> GetPayslipsByPayRunAsync(Guid payRunId, Guid OrgId)
         {
             return await _context.Payslips
-                .Where(p => p.PayRunId == payRunId)
+                .Where(p => p.PayRunId == payRunId && p.OrganizationId == OrgId)
                 .Include(p => p.Employee)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Payslip>> GetPayslipsByEmployeeAsync(Guid employeeId)
+        public async Task<IEnumerable<Payslip>> GetPayslipsByEmployeeAsync(Guid employeeId, Guid OrgId)
         {
             return await _context.Payslips
-                .Where(p => p.EmployeeId == employeeId)
+                .Where(p => p.EmployeeId == employeeId && p.OrganizationId == OrgId)
                 .Include(p => p.PayRun)
                 .ToListAsync();
         }

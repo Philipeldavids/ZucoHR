@@ -19,9 +19,10 @@ namespace ZucoHR.Infrastructure.Repository
             _context = context;
         }
 
-        public async Task<PagedResult<Employee>> GetPagedAsync(int page, int pageSize)
+        public async Task<PagedResult<Employee>> GetPagedAsync(int page, int pageSize, Guid orgId)
         {
-            var query = _context.Employees.AsQueryable();
+            var query = _context.Employees.AsQueryable()
+                .Where(x=> x.OrganizationId == orgId);
 
             var totalCount = await query.CountAsync();
             var items = await query
@@ -39,7 +40,7 @@ namespace ZucoHR.Infrastructure.Repository
             };
         }
 
-        public async Task<Employee?> GetByIdAsync(Guid id) => await _context.Employees.FindAsync(id);
+        public async Task<Employee?> GetByIdAsync(Guid id,Guid orgId) => await _context.Employees.Where(x=>x.OrganizationId==orgId).FirstOrDefaultAsync(x=>x.Id==id);
 
         public async Task AddAsync(Employee e)
         {

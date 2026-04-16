@@ -12,51 +12,30 @@ namespace ZucoHR.Controllers
     {
         private readonly IPayrollService _payrollService;
         private readonly ILogger<PayrollController> _logger;
-
-        public PayrollController(IPayrollService payrollService, ILogger<PayrollController> logger)
+        private readonly ITenantService _tenantService;
+        public PayrollController(IPayrollService payrollService, ILogger<PayrollController> logger, ITenantService tenantService)
         {
             _payrollService = payrollService;
             _logger = logger;
+            _tenantService = tenantService;
         }
 
         // POST: api/payroll/generate
-        [HttpPost("generate")]
-        public async Task<IActionResult> GeneratePayRun([FromBody] PayRunRequestDto dto)
-        {
-            var validator = new PayRunRequestDtoValidator();
-            var result = await validator.ValidateAsync(dto);
+       
 
-            if (!result.IsValid)
-                return BadRequest(result.Errors.Select(e => e.ErrorMessage));
-            try
+            [HttpPost("run")]
+            public async Task<IActionResult> RunPayroll(DateTime start, DateTime end)
             {
-                _logger.LogInformation("Starting pay run generation from {Start} to {End}", dto.PeriodStart, dto.PeriodEnd);
-
-                var payRun = await _payrollService.GeneratePayRunAsync(dto.PeriodStart, dto.PeriodEnd);
-
-                var response = new PayRunResponseDto
-                {
-                    Id = payRun.Id,
-                    PeriodStart = payRun.PeriodStart,
-                    PeriodEnd = payRun.PeriodEnd,
-                    Status = payRun.Status,
-                    TotalNet = payRun.TotalNet
-                };
-
-                _logger.LogInformation("Successfully generated pay run {Id}", payRun.Id);
-                return CreatedAtAction(nameof(GetPayRunById), new { id = payRun.Id }, response);
+                var result = await _payrollService.GeneratePayRun(start, end);
+                return Ok(result);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error generating pay run.");
-                return StatusCode(500, "An error occurred while generating the pay run.");
-            }
-        }
 
-        // GET: api/payroll
-        [HttpGet]
+
+            // GET: api/payroll
+            [HttpGet]
         public async Task<IActionResult> GetPayRuns([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
+            var OrgId = _tenantService.GetTenantId();   
             var allPayRuns = await _payrollService.GetAllPayRunsAsync();
             var total = allPayRuns.Count();
 

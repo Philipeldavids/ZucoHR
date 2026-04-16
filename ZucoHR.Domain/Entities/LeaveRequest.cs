@@ -11,6 +11,8 @@ namespace ZucoHR.Domain.Entities
     {
         public Guid Id { get; set; }
         public Guid EmployeeId { get; set; }
+
+        public Guid OrganizationId { get; set; }
         public Employee? Employee { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }

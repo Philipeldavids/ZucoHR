@@ -16,6 +16,8 @@ namespace ZucoHR.Domain.DTO
         public string? Email { get; set; }
         public DateTime HireDate { get; set; }
         public decimal BaseSalary { get; set; }
+
+        public decimal Allowances { get; set; }
         public string? Position { get; set; }
     }
 }

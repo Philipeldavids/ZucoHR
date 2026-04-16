@@ -19,10 +19,12 @@ namespace ZucoHR.Infrastructure.Data
         public DbSet<Employee> Employees => Set<Employee>();
         public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
         public DbSet<PerformanceReview> PerformanceReviews => Set<PerformanceReview>();
-        public DbSet<ExpenseClaim> ExpenseClaims => Set<ExpenseClaim>();
-        public DbSet<JobRequisition> JobRequisitions => Set<JobRequisition>();
-        public DbSet<Application> Applications => Set<Application>();
-        public DbSet<OnboardingChecklistItem> OnboardingItems => Set<OnboardingChecklistItem>();
+        public DbSet<Expense> Expenses => Set<Expense>();
+        public DbSet<JobPost> JobPosts => Set<JobPost>();
+        public DbSet<Applicant> Applicants => Set<Applicant>();
+        public DbSet<Onboarding> Onboardings { get; set; }
+        public DbSet<OnboardingTask> OnboardingTasks { get; set; }
+        public DbSet<OnboardingDocument> OnboardingDocuments { get; set; }
         public DbSet<PayRun> PayRuns => Set<PayRun>();
         public DbSet<Payslip> Payslips => Set<Payslip>();
 
@@ -33,7 +35,27 @@ namespace ZucoHR.Infrastructure.Data
             modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
             modelBuilder.Entity<Employee>().HasIndex(e => e.EmployeeNumber).IsUnique();
 
-            modelBuilder.Entity<ExpenseClaim>().Property(e => e.Amount).HasColumnType("decimal(18,2)");
+            
+            modelBuilder.Entity<Expense>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.Title)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
+                entity.Property(x => x.Description)
+                    .HasMaxLength(1000);
+
+                entity.Property(x => x.Amount)
+                    .HasColumnType("decimal(18,2)");
+
+                entity.Property(x => x.Category)
+                    .HasMaxLength(100);
+
+                entity.Property(x => x.Status)
+                    .HasConversion<int>();
+            });
 
             modelBuilder.Entity<PayRun>()
             .HasMany(p => p.Payslips)
@@ -42,6 +64,79 @@ namespace ZucoHR.Infrastructure.Data
             .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Payslip>().Property(p => p.NetPay).HasColumnType("decimal(18,2)");
+            modelBuilder.Entity<PerformanceReview>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.ReviewPeriod).IsRequired().HasMaxLength(50);
+                entity.Property(x => x.Score).IsRequired();
+                entity.Property(x => x.Summary).HasMaxLength(1000);
+            });
+            modelBuilder.Entity<JobPost>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.Title)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
+                entity.Property(x => x.Description)
+                    .IsRequired();
+
+                entity.Property(x => x.Department)
+                    .HasMaxLength(100);
+            });
+
+            modelBuilder.Entity<Applicant>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.FullName)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
+                entity.Property(x => x.Email)
+                    .IsRequired();
+
+                entity.Property(x => x.Status)
+                    .HasConversion<int>();
+
+                entity.HasOne<JobPost>()
+                    .WithMany()
+                    .HasForeignKey(x => x.JobPostId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Onboarding>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.Status)
+                    .IsRequired()
+                    .HasMaxLength(50);
+            });
+
+            modelBuilder.Entity<OnboardingTask>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.Title)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
+                entity.HasOne<Onboarding>()
+                    .WithMany()
+                    .HasForeignKey(x => x.OnboardingId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<OnboardingDocument>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.DocumentName)
+                    .IsRequired()
+                    .HasMaxLength(200);
+            });
         }
     }
 }

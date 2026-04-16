@@ -10,8 +10,8 @@ namespace ZucoHR.Infrastructure.Interfaces
     public interface ILeaveRepository
     {
         Task<LeaveRequest> AddAsync(LeaveRequest request);
-        Task<LeaveRequest?> GetByIdAsync(Guid id);
-        Task<IEnumerable<LeaveRequest>> GetByEmployeeAsync(Guid employeeId);
+        Task<LeaveRequest?> GetByIdAsync(Guid id, Guid orgId);
+        Task<IEnumerable<LeaveRequest>> GetByEmployeeAsync(Guid employeeId, Guid orgId);
         Task UpdateAsync(LeaveRequest request);
     }
 }

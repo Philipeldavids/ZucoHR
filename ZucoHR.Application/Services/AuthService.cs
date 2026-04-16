@@ -16,12 +16,14 @@ namespace ZucoHR.Application.Services
         private readonly IUserRepository _users;
         private readonly IRefreshTokenRepository _refreshRepo;
         private readonly IConfiguration _config;
+        private readonly ITokenGenerator _tokenGenerator;
 
-        public AuthService(IUserRepository users, IRefreshTokenRepository refreshRepo, IConfiguration config)
+        public AuthService(IUserRepository users, ITokenGenerator tokenGenerator, IRefreshTokenRepository refreshRepo, IConfiguration config)
         {
             _users = users;
             _refreshRepo = refreshRepo;
             _config = config;
+            _tokenGenerator = tokenGenerator;
         }
 
         public async Task<User> RegisterAsync(string email, string password, string role = "Employee")
@@ -30,7 +32,7 @@ namespace ZucoHR.Application.Services
             if (existing != null) throw new InvalidOperationException("Email already exists");
             var user = new User
             {
-                Id = Guid.NewGuid(),
+                UserName = email,
                 Email = email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
                 Role = role
@@ -44,7 +46,7 @@ namespace ZucoHR.Application.Services
             if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
                 throw new UnauthorizedAccessException("Invalid credentials");
 
-            var access = GenerateAccessToken(user);
+            var access = _tokenGenerator.GenerateToken(user);
             var refresh = await GenerateAndStoreRefreshToken(user);
 
             return (access, refresh);
@@ -60,33 +62,33 @@ namespace ZucoHR.Application.Services
             // revoke old token
             await _refreshRepo.RevokeAsync(stored);
 
-            var access = GenerateAccessToken(user);
+            var access = _tokenGenerator.GenerateToken(user);
             var newRefresh = await GenerateAndStoreRefreshToken(user);
 
             return (access, newRefresh);
         }
 
-        private string GenerateAccessToken(User user)
-        {
-            var jwt = _config.GetSection("Jwt");
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var claims = new[]
-            {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role),
-            new Claim("employeeId", user.EmployeeId?.ToString() ?? string.Empty)
-        };
-            var token = new JwtSecurityToken(
-                issuer: jwt["Issuer"],
-                audience: jwt["Audience"],
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(double.Parse(jwt["AccessTokenExpiryMinutes"])),
-                signingCredentials: creds
-            );
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
+        //private string GenerateAccessToken(User user)
+        //{
+        //    var jwt = _config.GetSection("Jwt");
+        //    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]));
+        //    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        //    var claims = new[]
+        //    {
+        //    new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+        //    new Claim(JwtRegisteredClaimNames.Email, user.Email),
+        //    new Claim(ClaimTypes.Role, user.Role),
+        //    new Claim("employeeId", user.EmployeeId?.ToString() ?? string.Empty)
+        //};
+        //    var token = new JwtSecurityToken(
+        //        issuer: jwt["Issuer"],
+        //        audience: jwt["Audience"],
+        //        claims: claims,
+        //        expires: DateTime.UtcNow.AddMinutes(double.Parse(jwt["AccessTokenExpiryMinutes"])),
+        //        signingCredentials: creds
+        //    );
+        //    return new JwtSecurityTokenHandler().WriteToken(token);
+        //}
 
         private async Task<string> GenerateAndStoreRefreshToken(User user)
         {
@@ -99,7 +101,8 @@ namespace ZucoHR.Application.Services
                 Token = tokenStr,
                 ExpiresAt = DateTime.UtcNow.AddDays(refreshExpiryDays),
                 IsRevoked = false,
-                UserId = user.Id
+                UserId = Guid.Parse(user.Id),
+                User = user
             };
             await _refreshRepo.AddAsync(rt);
             return tokenStr;
