@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using ZucoHR.Application.Interfaces;
+using ZucoHR.Domain.DTO;
 using ZucoHR.Domain.Entities;
 
 namespace ZucoHR.Controllers
@@ -10,58 +14,141 @@ namespace ZucoHR.Controllers
     public class RecruitmentController : ControllerBase
     {
         private readonly IRecruitmentService _service;
-
-        public RecruitmentController(IRecruitmentService service)
+        private readonly ITenantService _tenantService;
+        public RecruitmentController(ITenantService tenantService,IRecruitmentService service)
         {
             _service = service;
+            _tenantService = tenantService;
         }
 
         // Jobs
         [HttpGet("jobs")]
+        [Authorize]
         public async Task<IActionResult> GetJobs()
         {
-            return Ok(await _service.GetJobs());
+            int page = 1;
+            int pageSize = 20;
+            try
+            {
+                return Ok(await _service.GetJobs(page, pageSize));
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            
         }
 
         [HttpPost("jobs")]
-        public async Task<IActionResult> CreateJob(JobPost job)
+        [Authorize(Roles = "Admin, HR, HR Manager")]
+        public async Task<IActionResult> CreateJob([FromBody]JobPostRequest job)
         {
             await _service.CreateJob(job);
             return Ok(new { message = "Job created" });
         }
 
         [HttpPut("jobs/{id}")]
-        public async Task<IActionResult> UpdateJob(Guid id, JobPost job)
+        [Authorize(Roles = "Admin, HR, HR Manager")]
+        public async Task<IActionResult> UpdateJob(Guid id, [FromBody]JobPostRequest job)
         {
             await _service.UpdateJob(id, job);
             return Ok(new { message = "Job updated" });
         }
 
         [HttpDelete("jobs/{id}")]
+        [Authorize(Roles = "Admin, HR, HR Manager")]
         public async Task<IActionResult> DeleteJob(Guid id)
         {
             await _service.DeleteJob(id);
             return Ok(new { message = "Job deleted" });
         }
+        [HttpPatch("jobs/{id}/close")]
+        [Authorize(Roles = "Admin, HR, HR Manager")]
+        public async Task<IActionResult> CloseJob(Guid id)
+        {
+            try
+            {
+                await _service.CloseJobAsync(id);
+
+                return Ok(new
+                {
+                    message = "Job closed successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
+        }
 
         // Applicants
+
+        [HttpGet("applicants")]
+        [Authorize]
+        public async Task<IActionResult> GetApplicants()
+        {
+            int page = 1;
+            int pageSize = 100;
+
+            try
+            {
+                var res = await _service.GetApplicants(page, pageSize);
+                return Ok(res);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
         [HttpGet("jobs/{jobId}/applicants")]
+        [Authorize]
         public async Task<IActionResult> GetApplicants(Guid jobId)
         {
             return Ok(await _service.GetApplicants(jobId));
         }
-
-        [HttpPost("jobs/{jobId}/apply")]
-        public async Task<IActionResult> Apply(Guid jobId, Applicant applicant)
+        [HttpPost("apply")]
+        [Authorize]
+        public async Task<IActionResult> Apply(
+            [FromForm] ApplyJobRequest request)
         {
-            await _service.Apply(jobId, applicant);
-            return Ok(new { message = "Application submitted" });
+            try
+            {
+                var claim = User.FindFirst("employeeId");
+                    
+
+                if (claim == null)
+                    return Unauthorized();
+
+                var employeeId = Guid.Parse(claim.Value);
+                var orgId = _tenantService.GetTenantId();
+                await _service.ApplyAsync(
+                    orgId,
+                    employeeId,
+                    request
+                );
+
+                return Ok(new
+                {
+                    message = "Application submitted"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
         }
 
-        [HttpPut("applicants/{id}/status")]
-        public async Task<IActionResult> UpdateStatus(Guid id, ApplicationStatus status)
+        [HttpPatch("applicants/{id}/stage")]
+        [Authorize(Roles = "Admin, HR, HR Manager")]
+        public async Task<IActionResult> UpdateStatus(string id, [FromBody]UpdateApplicantRequest request)
         {
-            await _service.UpdateStatus(id, status);
+            await _service.UpdateStatus(Guid.Parse(id), request.Status);
             return Ok(new { message = "Status updated" });
         }
     }

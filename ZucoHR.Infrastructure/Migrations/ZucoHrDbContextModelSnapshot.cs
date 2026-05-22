@@ -31,6 +31,11 @@ namespace ZucoHR.Infrastructure.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasMaxLength(13)
+                        .HasColumnType("nvarchar(13)");
+
                     b.Property<string>("Name")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -47,6 +52,10 @@ namespace ZucoHR.Infrastructure.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasDiscriminator().HasValue("IdentityRole");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -164,9 +173,15 @@ namespace ZucoHR.Infrastructure.Migrations
                     b.Property<DateTime>("AppliedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("CoverLetter")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -176,14 +191,29 @@ namespace ZucoHR.Infrastructure.Migrations
                     b.Property<Guid>("JobPostId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("JobPostTitle")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LinkedinUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PortfolioUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ResumeUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<string>("Stage")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -198,7 +228,10 @@ namespace ZucoHR.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<decimal>("Allowances")
+                    b.Property<decimal>("Allowance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("AnnualRent")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("BasicSalary")
@@ -208,31 +241,40 @@ namespace ZucoHR.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Department")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("EmployeeNumber")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("HireDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("LastName")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Location")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Position")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -245,7 +287,8 @@ namespace ZucoHR.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("EmployeeNumber")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[EmployeeNumber] IS NOT NULL");
 
                     b.ToTable("Employees");
                 });
@@ -266,29 +309,42 @@ namespace ZucoHR.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Category")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Currency")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
                     b.Property<Guid>("EmployeeId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("EmployeeName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ReceiptUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<DateTime?>("RejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -300,17 +356,34 @@ namespace ZucoHR.Infrastructure.Migrations
                     b.ToTable("Expenses");
                 });
 
+            modelBuilder.Entity("ZucoHR.Domain.Entities.Feature", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Features");
+                });
+
             modelBuilder.Entity("ZucoHR.Domain.Entities.JobPost", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int?>("Applicants")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Department")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -322,18 +395,39 @@ namespace ZucoHR.Infrastructure.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Location")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Requirements")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("SalaryMax")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("SalaryMin")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Slug")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("Type")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId");
 
                     b.ToTable("JobPosts");
                 });
@@ -350,6 +444,9 @@ namespace ZucoHR.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("Days")
+                        .HasColumnType("int");
+
                     b.Property<Guid>("EmployeeId")
                         .HasColumnType("uniqueidentifier");
 
@@ -363,11 +460,19 @@ namespace ZucoHR.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("RejectionReason")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -379,35 +484,40 @@ namespace ZucoHR.Infrastructure.Migrations
                     b.ToTable("LeaveRequests");
                 });
 
-            modelBuilder.Entity("ZucoHR.Domain.Entities.Onboarding", b =>
+            modelBuilder.Entity("ZucoHR.Domain.Entities.Notification", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("ApplicantId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("EmployeeId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Status")
+                    b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Onboardings");
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("ZucoHR.Domain.Entities.OnboardingDocument", b =>
@@ -448,6 +558,10 @@ namespace ZucoHR.Infrastructure.Migrations
                     b.Property<Guid>("AssignedTo")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime2");
 
@@ -458,14 +572,18 @@ namespace ZucoHR.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsCompleted")
-                        .HasColumnType("bit");
+                    b.Property<DateTime>("DueDate")
+                        .HasColumnType("datetime2");
 
-                    b.Property<Guid>("OnboardingId")
+                    b.Property<Guid>("EmployeeId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -474,9 +592,71 @@ namespace ZucoHR.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OnboardingId");
+                    b.HasIndex("EmployeeId");
 
                     b.ToTable("OnboardingTasks");
+                });
+
+            modelBuilder.Entity("ZucoHR.Domain.Entities.Organization", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CurrencySymbol")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Timezone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Organizations");
+                });
+
+            modelBuilder.Entity("ZucoHR.Domain.Entities.OrganizationSubscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PlanId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlanId");
+
+                    b.ToTable("OrgSubscription");
                 });
 
             modelBuilder.Entity("ZucoHR.Domain.Entities.PayRun", b =>
@@ -487,6 +667,10 @@ namespace ZucoHR.Infrastructure.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Month")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uniqueidentifier");
@@ -509,6 +693,10 @@ namespace ZucoHR.Infrastructure.Migrations
 
                     b.Property<decimal>("TotalNet")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Year")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -539,6 +727,9 @@ namespace ZucoHR.Infrastructure.Migrations
                     b.Property<decimal>("NHF")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal>("NHIS")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<decimal>("NetPay")
                         .HasColumnType("decimal(18,2)");
 
@@ -555,6 +746,9 @@ namespace ZucoHR.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Pension")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("RentRelief")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("Tax")
@@ -598,6 +792,10 @@ namespace ZucoHR.Infrastructure.Migrations
                     b.Property<int>("Score")
                         .HasColumnType("int");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Summary")
                         .IsRequired()
                         .HasMaxLength(1000)
@@ -608,6 +806,41 @@ namespace ZucoHR.Infrastructure.Migrations
                     b.HasIndex("EmployeeId");
 
                     b.ToTable("PerformanceReviews");
+                });
+
+            modelBuilder.Entity("ZucoHR.Domain.Entities.Permission", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Permissions");
+                });
+
+            modelBuilder.Entity("ZucoHR.Domain.Entities.PlanFeature", b =>
+                {
+                    b.Property<Guid>("PlanId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("FeatureId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PlanId1")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("PlanId");
+
+                    b.HasIndex("FeatureId");
+
+                    b.HasIndex("PlanId1");
+
+                    b.ToTable("PlanFeatures");
                 });
 
             modelBuilder.Entity("ZucoHR.Domain.Entities.RefreshToken", b =>
@@ -642,6 +875,85 @@ namespace ZucoHR.Infrastructure.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
+            modelBuilder.Entity("ZucoHR.Domain.Entities.ReviewCompetency", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("PerformanceReviewId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Score")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PerformanceReviewId");
+
+                    b.ToTable("ReviewCompetencies");
+                });
+
+            modelBuilder.Entity("ZucoHR.Domain.Entities.ReviewGoal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("PerformanceReviewId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PerformanceReviewId");
+
+                    b.ToTable("ReviewGoals");
+                });
+
+            modelBuilder.Entity("ZucoHR.Domain.Entities.RolePermission", b =>
+                {
+                    b.Property<string>("RoleId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("PermissionId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("RoleId", "PermissionId");
+
+                    b.HasIndex("PermissionId");
+
+                    b.ToTable("RolePermissions");
+                });
+
+            modelBuilder.Entity("ZucoHR.Domain.Entities.SubscriptionPlan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SubscriptionPlans");
+                });
+
             modelBuilder.Entity("ZucoHR.Domain.Entities.User", b =>
                 {
                     b.Property<string>("Id")
@@ -665,11 +977,18 @@ namespace ZucoHR.Infrastructure.Migrations
                     b.Property<Guid>("EmployeeId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -684,6 +1003,9 @@ namespace ZucoHR.Infrastructure.Migrations
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Permissions")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
@@ -719,7 +1041,35 @@ namespace ZucoHR.Infrastructure.Migrations
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
+                    b.HasIndex("OrganizationId");
+
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("ZucoHR.Domain.Entities.UserRole", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("UserRoles");
+                });
+
+            modelBuilder.Entity("ZucoHR.Domain.Entities.Role", b =>
+                {
+                    b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityRole");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasDiscriminator().HasValue("Role");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -782,6 +1132,17 @@ namespace ZucoHR.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ZucoHR.Domain.Entities.JobPost", b =>
+                {
+                    b.HasOne("ZucoHR.Domain.Entities.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
+                });
+
             modelBuilder.Entity("ZucoHR.Domain.Entities.LeaveRequest", b =>
                 {
                     b.HasOne("ZucoHR.Domain.Entities.Employee", "Employee")
@@ -795,11 +1156,24 @@ namespace ZucoHR.Infrastructure.Migrations
 
             modelBuilder.Entity("ZucoHR.Domain.Entities.OnboardingTask", b =>
                 {
-                    b.HasOne("ZucoHR.Domain.Entities.Onboarding", null)
+                    b.HasOne("ZucoHR.Domain.Entities.Employee", "Employee")
                         .WithMany()
-                        .HasForeignKey("OnboardingId")
+                        .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("ZucoHR.Domain.Entities.OrganizationSubscription", b =>
+                {
+                    b.HasOne("ZucoHR.Domain.Entities.SubscriptionPlan", "Plan")
+                        .WithMany()
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Plan");
                 });
 
             modelBuilder.Entity("ZucoHR.Domain.Entities.Payslip", b =>
@@ -832,6 +1206,25 @@ namespace ZucoHR.Infrastructure.Migrations
                     b.Navigation("Employee");
                 });
 
+            modelBuilder.Entity("ZucoHR.Domain.Entities.PlanFeature", b =>
+                {
+                    b.HasOne("ZucoHR.Domain.Entities.Feature", "Feature")
+                        .WithMany()
+                        .HasForeignKey("FeatureId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ZucoHR.Domain.Entities.SubscriptionPlan", "Plan")
+                        .WithMany("Features")
+                        .HasForeignKey("PlanId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Feature");
+
+                    b.Navigation("Plan");
+                });
+
             modelBuilder.Entity("ZucoHR.Domain.Entities.RefreshToken", b =>
                 {
                     b.HasOne("ZucoHR.Domain.Entities.User", "User")
@@ -841,14 +1234,95 @@ namespace ZucoHR.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ZucoHR.Domain.Entities.ReviewCompetency", b =>
+                {
+                    b.HasOne("ZucoHR.Domain.Entities.PerformanceReview", "PerformanceReview")
+                        .WithMany("Competencies")
+                        .HasForeignKey("PerformanceReviewId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PerformanceReview");
+                });
+
+            modelBuilder.Entity("ZucoHR.Domain.Entities.ReviewGoal", b =>
+                {
+                    b.HasOne("ZucoHR.Domain.Entities.PerformanceReview", "PerformanceReview")
+                        .WithMany("Goals")
+                        .HasForeignKey("PerformanceReviewId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PerformanceReview");
+                });
+
+            modelBuilder.Entity("ZucoHR.Domain.Entities.RolePermission", b =>
+                {
+                    b.HasOne("ZucoHR.Domain.Entities.Permission", "Permission")
+                        .WithMany()
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ZucoHR.Domain.Entities.Role", null)
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+                });
+
+            modelBuilder.Entity("ZucoHR.Domain.Entities.User", b =>
+                {
+                    b.HasOne("ZucoHR.Domain.Entities.Organization", null)
+                        .WithMany("Users")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ZucoHR.Domain.Entities.UserRole", b =>
+                {
+                    b.HasOne("ZucoHR.Domain.Entities.Role", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("ZucoHR.Domain.Entities.Organization", b =>
+                {
+                    b.Navigation("Users");
+                });
+
             modelBuilder.Entity("ZucoHR.Domain.Entities.PayRun", b =>
                 {
                     b.Navigation("Payslips");
                 });
 
+            modelBuilder.Entity("ZucoHR.Domain.Entities.PerformanceReview", b =>
+                {
+                    b.Navigation("Competencies");
+
+                    b.Navigation("Goals");
+                });
+
+            modelBuilder.Entity("ZucoHR.Domain.Entities.SubscriptionPlan", b =>
+                {
+                    b.Navigation("Features");
+                });
+
             modelBuilder.Entity("ZucoHR.Domain.Entities.User", b =>
                 {
                     b.Navigation("RefreshTokens");
+                });
+
+            modelBuilder.Entity("ZucoHR.Domain.Entities.Role", b =>
+                {
+                    b.Navigation("RolePermissions");
                 });
 #pragma warning restore 612, 618
         }

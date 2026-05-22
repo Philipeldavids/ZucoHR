@@ -9,7 +9,21 @@ namespace ZucoHR.Domain.Entities
 {
     public class Role : IdentityRole
     {
-        public Guid Id {  get; set; }
-        public string Name {  get; set; }
+      
+            //public Guid Id { get; set; }
+            public Guid OrganizationId { get; set; }
+        //public string Name { get; set; } // Admin, HR, etc.
+
+        public ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
+        
+    }
+
+    public class RolePermission
+    {
+        public string RoleId { get; set; }
+        //public Role? Role { get; set; }
+
+        public string PermissionId { get; set; }
+        public Permission Permission { get; set; } = new Permission();
     }
 }

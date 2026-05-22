@@ -10,8 +10,17 @@ namespace ZucoHR.Domain.Entities
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
-        public string Domain { get; set; }  // optional
-        public string SubscriptionPlan { get; set; }
-        public DateTime CreatedAt { get; set; }
+        //public string Domain { get; set; }  // optional
+        //public string SubscriptionPlan { get; set; }
+        public string CurrencyCode { get; set; } = "NGN";
+
+        public string CurrencySymbol { get; set; } = "₦";
+
+        public string Timezone { get; set; } = "Africa/Lagos";
+        public string Slug { get; set; } // unique (for subdomain later)
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public ICollection<User> Users { get; set; }
     }
 }

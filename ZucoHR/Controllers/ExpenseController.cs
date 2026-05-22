@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using ZucoHR.Application.Interfaces;
+using ZucoHR.Domain.DTO;
 using ZucoHR.Domain.Entities;
 
 namespace ZucoHR.Controllers
@@ -18,18 +22,21 @@ namespace ZucoHR.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        [Authorize]
+        public async Task<IActionResult> GetAll([FromQuery] int page=1, [FromQuery]int pageSize = 100)
         {
-            return Ok(await _service.GetAllExpenses());
+            return Ok(await _service.GetAllExpenses(page, pageSize));
         }
 
         [HttpGet("employee/{employeeId}")]
+        [Authorize]
         public async Task<IActionResult> GetByEmployee(Guid employeeId)
         {
             return Ok(await _service.GetEmployeeExpenses(employeeId));
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<IActionResult> Get(Guid id)
         {
             var result = await _service.GetExpense(id);
@@ -39,37 +46,88 @@ namespace ZucoHR.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Expense expense)
+        [Authorize]
+        public async Task<IActionResult> Create([FromForm]ExpenseRequest request)
         {
-            await _service.CreateExpense(expense);
-            return Ok(new { message = "Expense submitted" });
+            try
+            {
+                var employeeId = Guid.Parse(User.FindFirst("employeeId")?.Value ?? throw new UnauthorizedAccessException());
+                request.EmployeeId = employeeId;
+                await _service.CreateExpense(request);
+                return Ok(new { message = "Expense submitted" });
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+           
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, Expense expense)
+        [Authorize]
+        public async Task<IActionResult> Update(Guid id,[FromForm]ExpenseRequest request)
         {
-            await _service.UpdateExpense(id, expense);
-            return Ok(new { message = "Expense updated" });
+            try
+            {
+                var employeeId = Guid.Parse(User.FindFirst("employeeId")?.Value ?? throw new UnauthorizedAccessException());
+                request.EmployeeId = employeeId;
+                await _service.UpdateExpense(id, request);
+                return Ok(new { message = "Expense updated" });
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        [HttpPost("{id}/approve")]
-        public async Task<IActionResult> Approve(Guid id, [FromQuery] Guid approverId)
+        [HttpPatch("{id}/approve")]
+        [Authorize(Roles = "Admin, Manager, HR Manager")]
+        public async Task<IActionResult> Approve(string id)
         {
-            await _service.ApproveExpense(id, approverId);
-            return Ok(new { message = "Expense approved" });
+
+            try
+            {
+                var claim = User.FindFirst(JwtRegisteredClaimNames.Sub)
+                ?? User.FindFirst(ClaimTypes.NameIdentifier);
+
+                if (claim == null)
+                    throw new UnauthorizedAccessException("Approval ID claim missing");
+                var approverId = Guid.Parse(claim.Value);
+                await _service.ApproveExpense(Guid.Parse(id), approverId);
+                return Ok(new { message = "Expense approved" });
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        [HttpPost("{id}/reject")]
-        public async Task<IActionResult> Reject(Guid id, [FromQuery] Guid approverId)
+        [HttpPatch("{id}/reject")]
+        [Authorize(Roles = "Admin, Manager, HR Manager")]
+        public async Task<IActionResult> Reject(string id, [FromBody] RejectExpenseRequest request)
         {
-            await _service.RejectExpense(id, approverId);
-            return Ok(new { message = "Expense rejected" });
+            try
+            {
+                var claim = User.FindFirst(JwtRegisteredClaimNames.Sub)
+                ?? User.FindFirst(ClaimTypes.NameIdentifier);
+
+                if (claim == null)
+                    throw new UnauthorizedAccessException("Approval ID claim missing");
+                var approverId = Guid.Parse(claim.Value);
+                await _service.RejectExpense(Guid.Parse(id), request.Reason, approverId);
+                return Ok(new { message = "Expense rejected" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id)
+        [Authorize(Roles = "Admin, Manager, HR Manager")]
+        public async Task<IActionResult> Delete(string id)
         {
-            await _service.DeleteExpense(id);
+            await _service.DeleteExpense(Guid.Parse(id));
             return Ok(new { message = "Deleted successfully" });
         }
     }

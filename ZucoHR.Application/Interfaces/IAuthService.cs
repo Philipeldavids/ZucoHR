@@ -9,10 +9,10 @@ namespace ZucoHR.Application.Interfaces
 {
     public interface IAuthService
     {
-        
-        Task<User> RegisterAsync(string email, string password, string role = "Employee");
+
+        Task<User> RegisterAsync(string email, string name, string password, string role = "Admin", string organizationName = null);
         Task<(string accessToken, string refreshToken)> RefreshAsync(string refreshToken);
 
-        Task<(string accessToken, string refreshToken)> SignInAsync(string email, string password);
+        Task<(string accessToken, string refreshToken, User user, Organization organization)> SignInAsync(string email, string password);
     }
 }

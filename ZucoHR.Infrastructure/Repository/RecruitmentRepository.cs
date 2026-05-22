@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Azure;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 using ZucoHR.Domain.Entities;
 using ZucoHR.Infrastructure.Data;
 using ZucoHR.Infrastructure.Interfaces;
+using ZucoHR.Shared;
 
 namespace ZucoHR.Infrastructure.Repository
 {
@@ -21,14 +23,27 @@ namespace ZucoHR.Infrastructure.Repository
             }
 
             // Jobs
-            public async Task<List<JobPost>> GetJobsAsync(Guid orgId)
+            public async Task<PaginatedResponse<JobPost>> GetJobsAsync(Guid orgId, int page, int pageSize)
             {
-                return await _context.JobPosts
-                    .AsNoTracking()
-                    .Where(x=>x.OrganizationId == orgId)
-                    .OrderByDescending(x => x.CreatedAt)
-                    .ToListAsync();
-            }
+            var query = _context.JobPosts.AsQueryable()
+           .Where(x => x.OrganizationId == orgId);
+          
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .OrderBy(e => e.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PaginatedResponse<JobPost>
+            {
+                Data = items,
+                Total = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
 
             public async Task<JobPost?> GetJobByIdAsync(Guid orgId, Guid id)
             {
@@ -56,6 +71,28 @@ namespace ZucoHR.Infrastructure.Repository
             }
 
             // Applicants
+
+        public async Task<PaginatedResponse<Applicant>> GetApplicants(Guid orgId,int page, int pageSize)
+        {
+            var query = _context.Applicants.AsQueryable()
+           .Where(x => x.OrganizationId == orgId);
+
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .OrderBy(e => e.AppliedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PaginatedResponse<Applicant>
+            {
+                Data = items,
+                Total = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
             public async Task<List<Applicant>> GetApplicantsByJobAsync(Guid orgId,Guid jobId)
             {
                 return await _context.Applicants

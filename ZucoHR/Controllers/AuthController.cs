@@ -25,9 +25,12 @@ namespace ZucoHR.Controllers
             try
             {
                 var user = await _authService.RegisterAsync(
-                    request.Email,
-                    request.Password,
+                    request.Email,                   
+                    request.Name,
+                     request.Password,                    
+                    request.OrganizationName,
                     request.Role
+
                 );
 
                 return Ok(new
@@ -49,7 +52,7 @@ namespace ZucoHR.Controllers
         {
             try
             {
-                var (accessToken, refreshToken) = await _authService.SignInAsync(
+                var (accessToken, refreshToken, user, org) = await _authService.SignInAsync(
                     request.Email,
                     request.Password
                 );
@@ -57,7 +60,9 @@ namespace ZucoHR.Controllers
                 return Ok(new AuthResponse
                 {
                     AccessToken = accessToken,
-                    RefreshToken = refreshToken
+                    RefreshToken = refreshToken,
+                    User = user,
+                    Organization = org
                 });
             }
             catch (Exception ex)

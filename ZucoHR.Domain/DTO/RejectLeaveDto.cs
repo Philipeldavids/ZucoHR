@@ -8,6 +8,6 @@ namespace ZucoHR.Domain.DTO
 {
     public class RejectLeaveDto
     {
-        public string Comment { get; set; } = string.Empty;
+        public string? Comment { get; set; } = string.Empty;
     }
 }

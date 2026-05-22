@@ -1,12 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Azure;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using ZucoHR.Domain.Entities;
 using ZucoHR.Infrastructure.Data;
 using ZucoHR.Infrastructure.Interfaces;
+using ZucoHR.Shared;
 
 namespace ZucoHR.Infrastructure.Repository
 {
@@ -30,15 +33,13 @@ namespace ZucoHR.Infrastructure.Repository
         {
             return await _context.PayRuns
                 .Where(x=>x.OrganizationId == orgId)
-                .Include(p => p.Payslips)
-                .FirstOrDefaultAsync(p => p.Id == id);
+                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
         public async Task<IEnumerable<PayRun>> GetAllPayRunsAsync(Guid OrgId)
         {
             return await _context.PayRuns.
                 Where(x=> x.OrganizationId == OrgId)
-                .Include(p => p.Payslips)
                 .OrderByDescending(p => p.PeriodStart)
                 .ToListAsync();
         }
@@ -60,8 +61,7 @@ namespace ZucoHR.Infrastructure.Repository
         {
             return await _context.Payslips
                 .Where(x=>x.OrganizationId == OrgId)
-                .Include(p => p.Employee)
-                .Include(p => p.PayRun)
+                .Include(p => p.Employee)                
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
@@ -77,10 +77,32 @@ namespace ZucoHR.Infrastructure.Repository
         {
             return await _context.Payslips
                 .Where(p => p.EmployeeId == employeeId && p.OrganizationId == OrgId)
-                .Include(p => p.PayRun)
                 .ToListAsync();
         }
+        public async Task<PaginatedResponse<Payslip>> GetAllSlip(Guid orgId, int page=1, int pageSize = 10) 
+        {
 
+            var query = _context.Payslips.AsQueryable()
+                .Where(x => x.OrganizationId == orgId)
+                .Include(x => x.PayRun)
+                .Include(x=>x.Employee);
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .OrderBy(e => e.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PaginatedResponse<Payslip>
+            {
+                Data = items,
+                Total = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
+
+        }
         public async Task UpdatePayslipAsync(Payslip payslip)
         {
             _context.Payslips.Update(payslip);

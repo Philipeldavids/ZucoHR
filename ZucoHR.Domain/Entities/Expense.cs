@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace ZucoHR.Domain.Entities
 {
-    public enum ExpenseStatus
-    {
-        Pending = 0,
-        Approved = 1,
-        Rejected = 2
-    }
+    //public enum ExpenseStatus
+    //{
+    //    Pending = 0,
+    //    Approved = 1,
+    //    Rejected = 2,
+    //    Reimbursed = 3
+    //}
 
     public class Expense
     {
@@ -19,16 +20,23 @@ namespace ZucoHR.Domain.Entities
         public Guid OrganizationId { get; set; }
         public Guid EmployeeId { get; set; }
 
-        public string Title { get; set; }
-        public string Description { get; set; }
+        public string? EmployeeName { get; set; }
+        public string? Title { get; set; }
+        public string? Description { get; set; }
 
         public decimal Amount { get; set; }
-        public string Category { get; set; } // Travel, Meals, Office, etc.
 
-        public ExpenseStatus Status { get; set; }
+        public string? Currency { get; set; }
+        public string? Category { get; set; } // Travel, Meals, Office, etc.
+
+        public string? Status { get; set; } = "Pending";
 
         public string? ReceiptUrl { get; set; }
 
+        public string? Reason { get; set; }
+
+        public DateTime Date { get; set; }
+        public DateTime? RejectedAt { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? ApprovedAt { get; set; }
 

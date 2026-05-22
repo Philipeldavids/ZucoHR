@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace ZucoHR.Domain.Entities
@@ -22,6 +23,9 @@ namespace ZucoHR.Domain.Entities
         // Deductions
         public decimal Pension { get; set; }
         public decimal NHF { get; set; }
+        public decimal NHIS { get; set; }
+
+        public decimal RentRelief { get; set; }
         public decimal Tax { get; set; }
         public decimal OtherDeductions { get; set; }
 
@@ -34,7 +38,8 @@ namespace ZucoHR.Domain.Entities
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public PayRun PayRun { get; set; } = null!;
-        public Employee Employee { get; set; } = null!;
+       
+        public PayRun? PayRun { get; set; } 
+        public Employee? Employee { get; set; } 
     }
 }

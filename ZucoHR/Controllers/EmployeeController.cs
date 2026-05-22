@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ZucoHR.Application.Interfaces;
+using ZucoHR.Application.Utilities;
 using ZucoHR.Domain.DTO;
 using ZucoHR.Domain.Entities;
 using ZucoHR.Shared;
@@ -20,7 +22,8 @@ namespace ZucoHR.Controllers
             _tenantService = tenantService;
         }
 
-        [HttpGet]
+        [HttpGet("GetAll")]
+        [Authorize(Roles = "Admin, HR, Manager,HR Manager")]
         public async Task<IActionResult> GetPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var OrgID = _tenantService.GetTenantId();
@@ -29,6 +32,7 @@ namespace ZucoHR.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "Admin, HR, HR Manager")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var OrgID = _tenantService.GetTenantId();
@@ -38,19 +42,30 @@ namespace ZucoHR.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles ="Admin, HR, HR Manager")]
+        //[RequirePermission("EMPLOYEE_CREATE")]
         public async Task<IActionResult> Create([FromBody] EmployeeDto e)
         {
-            var validator = new CreateEmployeeValidator();
-            var result = await validator.ValidateAsync(e);
+            try
+            {
+                var validator = new CreateEmployeeValidator();
+                var result = await validator.ValidateAsync(e);
 
-            if (!result.IsValid)
-                return BadRequest(result.Errors.Select(e => e.ErrorMessage));
+                if (!result.IsValid)
+                    return BadRequest(result.Errors.Select(e => e.ErrorMessage));
 
-            var created = await _employeeService.CreateAsync(e);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+
+                var created = await _employeeService.CreateAsync(e);
+                return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin, HR, HR Manager")]
         public async Task<IActionResult> Update(Guid id, [FromBody] EmployeeDto e)
         {
             var validator = new CreateEmployeeValidator();
@@ -64,6 +79,7 @@ namespace ZucoHR.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin, HR, HR Manager")]
         public async Task<IActionResult> Delete(Guid id)
         {
             await _employeeService.DeleteAsync(id);

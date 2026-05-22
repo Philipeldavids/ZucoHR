@@ -8,8 +8,8 @@ namespace ZucoHR.Application.Utilities
 {
     public class PayrollCalculator
     {
-        public static (decimal gross, decimal pension, decimal nhf, decimal tax, decimal net)
-            CalculateMonthly(decimal basic, decimal allowances)
+        public static (decimal gross, decimal pension, decimal nhf, decimal nhis, decimal tax, decimal rr, decimal net)
+            CalculateMonthly(decimal basic, decimal allowances, decimal annualRent)
         {
             var monthlyGross = basic + allowances;
 
@@ -22,9 +22,12 @@ namespace ZucoHR.Application.Utilities
             var annualNhf = (basic * 12) * 0.025m;
 
             // CRA
-            var cra = Math.Max(200000m, annualGross * 0.01m) + (annualGross * 0.20m);
+            var annualrr = Math.Min(500000m, annualRent * 0.2m);
+            //NHIS
 
-            var taxable = annualGross - cra - annualPension - annualNhf;
+            var annualNhis = (basic * 12) * 0.05m;
+
+            var taxable = annualGross - annualrr - annualPension - annualNhf - annualNhis;
             if (taxable < 0) taxable = 0;
 
             var annualTax = CalculateTax(taxable);
@@ -33,36 +36,53 @@ namespace ZucoHR.Application.Utilities
             var tax = annualTax / 12;
             var pension = annualPension / 12;
             var nhf = annualNhf / 12;
+            var nhis = annualNhis / 12;
+            var rr = annualrr / 12;
+            var net = monthlyGross - (tax + pension + nhf + nhis);
 
-            var net = monthlyGross - (tax + pension + nhf);
-
-            return (monthlyGross, pension, nhf, tax, net);
+            return (monthlyGross, pension, nhf, nhis, tax, rr, net);
         }
 
         private static decimal CalculateTax(decimal taxable)
         {
             decimal tax = 0;
 
-            var bands = new (decimal limit, decimal rate)[]
+            if (taxable <= 800000)
             {
-            (300000, 0.07m),
-            (300000, 0.11m),
-            (500000, 0.15m),
-            (500000, 0.19m),
-            (1600000, 0.21m),
-            (decimal.MaxValue, 0.24m)
-            };
-
-            foreach (var (limit, rate) in bands)
+                tax = 0;
+            }
+            else if (taxable <= 3000000)
             {
-                var amount = Math.Min(taxable, limit);
-                tax += amount * rate;
-                taxable -= amount;
-
-                if (taxable <= 0) break;
+                tax = (taxable - 800000) * 0.15m;
+            }
+            else if (taxable <= 12000000)
+            {
+                tax = (2200000 * 0.15m) +
+                      ((taxable - 3000000) * 0.18m);
+            }
+            else if (taxable <= 25000000)
+            {
+                tax = (2200000 * 0.15m) +
+                      (9000000 * 0.18m) +
+                      ((taxable - 12000000) * 0.21m);
+            }
+            else if (taxable <= 50000000)
+            {
+                tax = (2200000 * 0.15m) +
+                      (9000000 * 0.18m) +
+                      (13000000 * 0.21m) +
+                      ((taxable - 25000000) * 0.23m);
+            }
+            else
+            {
+                tax = (2200000 * 0.15m) +
+                      (9000000 * 0.18m) +
+                      (13000000 * 0.21m) +
+                      (25000000 * 0.23m) +
+                      ((taxable - 50000000) * 0.25m);
             }
 
             return tax;
         }
     }
-}
+    }

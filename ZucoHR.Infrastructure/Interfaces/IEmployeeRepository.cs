@@ -11,7 +11,7 @@ namespace ZucoHR.Infrastructure.Interfaces
     public interface IEmployeeRepository
     {
         Task<Employee?> GetByIdAsync(Guid id, Guid orgId);
-        Task<PagedResult<Employee>> GetPagedAsync(int page, int pageSize, Guid orgId);
+        Task<PaginatedResponse<Employee>> GetPagedAsync(int page, int pageSize, Guid orgId);
         Task AddAsync(Employee e);
         Task UpdateAsync(Employee e);
         Task DeleteAsync(Employee e);

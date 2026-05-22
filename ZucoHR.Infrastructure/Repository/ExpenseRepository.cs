@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Azure;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 using ZucoHR.Domain.Entities;
 using ZucoHR.Infrastructure.Data;
 using ZucoHR.Infrastructure.Interfaces;
+using ZucoHR.Shared;
 
 namespace ZucoHR.Infrastructure.Repository
 {
@@ -19,13 +21,26 @@ namespace ZucoHR.Infrastructure.Repository
             _context = context;
         }
 
-        public async Task<List<Expense>> GetAllAsync(Guid orgId)
+        public async Task<PaginatedResponse<Expense>> GetAllAsync(Guid orgId, int page, int pageSize)
         {
-            return await _context.Expenses
-                .AsNoTracking()
-                .Where(x => x.OrganizationId == orgId)
-                .OrderByDescending(x => x.CreatedAt)
+            var query = _context.Expenses.AsQueryable()
+                .Where(x => x.OrganizationId == orgId);
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .OrderBy(e => e.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            return new PaginatedResponse<Expense>
+            {
+                Data = items,
+                Total = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
+           
         }
 
         public async Task<List<Expense>> GetByEmployeeAsync(Guid orgId, Guid employeeId)

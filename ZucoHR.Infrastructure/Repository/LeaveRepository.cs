@@ -1,12 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Azure;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using ZucoHR.Domain.Entities;
 using ZucoHR.Infrastructure.Data;
 using ZucoHR.Infrastructure.Interfaces;
+using ZucoHR.Shared;
 
 namespace ZucoHR.Infrastructure.Repository
 {
@@ -28,7 +31,27 @@ namespace ZucoHR.Infrastructure.Repository
             await _context.SaveChangesAsync();
             return request;
         }
+        public async Task<PaginatedResponse<LeaveRequest>> GetAll(Guid orgId, int page = 1, int pageSize = 10)
+        {
+            var query = _context.LeaveRequests.AsQueryable()
+               .Where(x => x.OrganizationId == orgId)
+               .Include(l => l.Employee);
 
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .OrderBy(e => e.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PaginatedResponse<LeaveRequest>
+            {
+                Data = items,
+                Total = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
         public async Task<LeaveRequest?> GetByIdAsync(Guid id, Guid OrgId)
         {
             return await _context.LeaveRequests
@@ -43,6 +66,7 @@ namespace ZucoHR.Infrastructure.Repository
             return await _context.LeaveRequests
                 .AsNoTracking()
                 .Where(l => l.EmployeeId == employeeId && l.OrganizationId == orgId)
+                .Include(l=>l.Employee)
                 .OrderByDescending(l => l.StartDate)
                 .ToListAsync();
         }

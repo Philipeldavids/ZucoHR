@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ZucoHR.Application.Interfaces;
+using ZucoHR.Domain.DTO;
 using ZucoHR.Domain.Entities;
+using ZucoHR.Infrastructure.Interfaces;
 
 namespace ZucoHR.Controllers
 {
@@ -10,51 +13,95 @@ namespace ZucoHR.Controllers
     public class OnboardingController : ControllerBase
     {
         private readonly IOnboardingService _service;
+        private readonly ITenantService _tenantService;
 
-        public OnboardingController(IOnboardingService service)
+        public OnboardingController(
+            IOnboardingService service,
+            ITenantService tenantService
+        )
         {
             _service = service;
+            _tenantService = tenantService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        [Authorize(Roles = "Admin, HR, HR Manager")]
+        public async Task<IActionResult> GetAll(int page = 1, int pageSize = 100)
         {
-            return Ok(await _service.GetAll());
+            var orgId = _tenantService.GetTenantId();
+            var result =
+                await _service.GetAllAsync(orgId, page, pageSize);
+
+            return Ok(result);
         }
 
-        [HttpPost("start")]
-        public async Task<IActionResult> Start(Guid applicantId)
+        [HttpGet("{id}")]
+        [Authorize(Roles = "Admin, HR, HR Manager")]
+        public async Task<IActionResult> GetById(
+            Guid id
+        )
         {
-            await _service.StartOnboarding(applicantId);
-            return Ok(new { message = "Onboarding started" });
+            var result =
+                await _service.GetByIdAsync(id);
+
+            if (result == null)
+                return NotFound();
+
+            return Ok(result);
         }
 
-        [HttpPost("{id}/tasks")]
-        public async Task<IActionResult> AddTask(Guid id, OnboardingTask task)
+        [HttpPost]
+        [Authorize(Roles = "Admin, HR, HR Manager")]
+        public async Task<IActionResult> Create(
+            [FromBody]
+        CreateOnboardingTaskDTO dto
+        )
         {
-            await _service.AddTask(id, task);
-            return Ok(new { message = "Task added" });
+            var result =
+                await _service.CreateAsync(dto);
+
+            return Ok(result);
         }
 
-        [HttpPost("tasks/{taskId}/complete")]
-        public async Task<IActionResult> CompleteTask(Guid taskId)
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin, HR, HR Manager")]
+        public async Task<IActionResult> Update(
+            Guid id,
+            [FromBody]
+        UpdateOnboardingTaskDTO dto
+        )
         {
-            await _service.CompleteTask(taskId);
-            return Ok(new { message = "Task completed" });
+            var updated =
+                await _service.UpdateAsync(
+                    id,
+                    dto
+                );
+
+            if (!updated)
+                return NotFound();
+
+            return Ok(new
+            {
+                message = "Task updated"
+            });
         }
 
-        [HttpPost("{id}/documents")]
-        public async Task<IActionResult> UploadDoc(Guid id, OnboardingDocument doc)
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin, HR, HR Manager")]
+        public async Task<IActionResult> Delete(
+            Guid id
+        )
         {
-            await _service.UploadDocument(id, doc);
-            return Ok(new { message = "Document uploaded" });
-        }
+            var deleted =
+                await _service.DeleteAsync(id);
 
-        [HttpPost("{id}/complete")]
-        public async Task<IActionResult> Complete(Guid id)
-        {
-            await _service.CompleteOnboarding(id);
-            return Ok(new { message = "Onboarding completed" });
+            if (!deleted)
+                return NotFound();
+
+            return Ok(new
+            {
+                message = "Task deleted"
+            });
         }
     }
 }

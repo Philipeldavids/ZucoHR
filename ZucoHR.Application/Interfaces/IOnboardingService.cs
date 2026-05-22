@@ -3,22 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ZucoHR.Domain.Entities;
+using ZucoHR.Domain.DTO;
+using ZucoHR.Shared;
 
-namespace ZucoHR.Application.Interfaces
+namespace ZucoHR.Infrastructure.Interfaces
 {
     public interface IOnboardingService
     {
-        Task<List<Onboarding>> GetAll();
-        Task<Onboarding?> Get(Guid id);
+        Task<PaginatedResponse<OnboardingTaskResponseDTO>> GetAllAsync(Guid orgId, int page, int pageSize);
 
-        Task StartOnboarding(Guid applicantId);
+        Task<OnboardingTaskResponseDTO?> GetByIdAsync(Guid id);
 
-        Task AddTask(Guid onboardingId, OnboardingTask task);
-        Task CompleteTask(Guid taskId);
+        Task<OnboardingTaskResponseDTO> CreateAsync(
+            CreateOnboardingTaskDTO dto
+        );
 
-        Task UploadDocument(Guid onboardingId, OnboardingDocument doc);
+        Task<bool> UpdateAsync(
+            Guid id,
+            UpdateOnboardingTaskDTO dto
+        );
 
-        Task CompleteOnboarding(Guid onboardingId);
+        Task<bool> DeleteAsync(Guid id);
     }
 }

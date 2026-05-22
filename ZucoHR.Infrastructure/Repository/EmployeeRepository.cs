@@ -19,7 +19,7 @@ namespace ZucoHR.Infrastructure.Repository
             _context = context;
         }
 
-        public async Task<PagedResult<Employee>> GetPagedAsync(int page, int pageSize, Guid orgId)
+        public async Task<PaginatedResponse<Employee>> GetPagedAsync(int page, int pageSize, Guid orgId)
         {
             var query = _context.Employees.AsQueryable()
                 .Where(x=> x.OrganizationId == orgId);
@@ -31,11 +31,11 @@ namespace ZucoHR.Infrastructure.Repository
                 .Take(pageSize)
                 .ToListAsync();
 
-            return new PagedResult<Employee>
+            return new PaginatedResponse<Employee>
             {
-                Items = items,
-                TotalCount = totalCount,
-                PageNumber = page,
+                Data = items,
+                Total = totalCount,
+                Page = page,
                 PageSize = pageSize
             };
         }

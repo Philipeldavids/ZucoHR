@@ -1,46 +1,73 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using ZucoHR.Application.Interfaces;
+using ZucoHR.Application.Services;
 using ZucoHR.Domain.DTO;
+using ZucoHR.Domain.Entities;
 using ZucoHR.Shared;
 
 namespace ZucoHR.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+   
     public class LeaveController : ControllerBase
     {
         private readonly ILeaveService _leaveService;
         private readonly ILogger<LeaveController> _logger;
         private readonly ITenantService _tenantService;
+        
 
         public LeaveController(ILeaveService leaveService, ILogger<LeaveController> logger, ITenantService tenantService)
         {
             _leaveService = leaveService;
             _logger = logger;
             _tenantService = tenantService;
+            
         }
 
         /// <summary>
         /// Request a new leave
         /// </summary>
-        [HttpPost("request")]
+        [HttpPost]
+        [Authorize]
         public async Task<IActionResult> RequestLeave([FromBody] LeaveRequestDto dto)
         {
-            var validator = new LeaveRequestDtoValidator();
-            var result = await validator.ValidateAsync(dto);
+            try
+            {
+                var validator = new LeaveRequestDtoValidator();
+                var result = await validator.ValidateAsync(dto);
 
-            if (!result.IsValid)
-                return BadRequest(result.Errors.Select(e => e.ErrorMessage));
+                if (!result.IsValid)
+                    return BadRequest(result.Errors.Select(e => e.ErrorMessage));
 
-            var employeeId = Guid.Parse(User.FindFirst("sub")?.Value ?? throw new UnauthorizedAccessException());
-
-            var leave = await _leaveService.RequestLeaveAsync(employeeId, dto.StartDate, dto.EndDate, dto.Reason);
-            return CreatedAtAction(nameof(GetById), new { id = leave.Id }, leave);
+                var employeeId = Guid.Parse(User.FindFirst("employeeId")?.Value ?? throw new UnauthorizedAccessException());
+                var leave = await _leaveService.RequestLeaveAsync(employeeId, dto.Type, dto.StartDate, dto.EndDate, dto.Reason);
+                return CreatedAtAction(nameof(GetById), new { id = leave.Id }, leave);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
-
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetAll(int page, int pageSize)
+        {
+            try
+            {
+                var orgId = _tenantService.GetTenantId();
+                var leaves = await _leaveService.GetAll(orgId, page, pageSize);
+                return Ok(leaves);
+            }catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            }
         /// <summary>
         /// Get leave request by ID
         /// </summary>
@@ -54,27 +81,38 @@ namespace ZucoHR.Controllers
         /// <summary>
         /// Approve a leave request
         /// </summary>
-        [HttpPost("{leaveId:guid}/approve")]
-        [Authorize(Roles = "Manager,HR")]
-        public async Task<IActionResult> ApproveLeave(Guid leaveId)
+        [HttpPost("{id}/approve")]
+        [Authorize(Roles = "Admin,Manager,HR, HR Manager")]
+        public async Task<IActionResult> ApproveLeave(string id)
         {
-            var approverId = Guid.Parse(User.FindFirst("sub")?.Value ?? throw new UnauthorizedAccessException());
-            await _leaveService.ApproveAsync(leaveId, approverId);
+            var claim = User.FindFirst(JwtRegisteredClaimNames.Sub)
+                 ?? User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (claim == null)
+                throw new UnauthorizedAccessException("Approval ID claim missing"); 
+            var approverId = Guid.Parse(claim.Value);
+            await _leaveService.ApproveAsync(Guid.Parse(id), approverId);
             return Ok(new { message = "Leave approved successfully." });
+            
         }
 
         /// <summary>
         /// Reject a leave request
         /// </summary>
-        [HttpPost("{leaveId:guid}/reject")]
-        [Authorize(Roles = "Manager,HR")]
-        public async Task<IActionResult> RejectLeave(Guid leaveId, [FromBody] RejectLeaveDto dto)
+        [HttpPost("{id}/reject")]
+        [Authorize(Roles = "Admin,Manager,HR, HR Manager")]
+        public async Task<IActionResult> RejectLeave(string id, string comment = null)
         {
-            if (string.IsNullOrWhiteSpace(dto.Comment))
-                return BadRequest("Comment is required for rejection.");
+            //if (string.IsNullOrWhiteSpace(dto.Comment))
+            //    return BadRequest("Comment is required for rejection.");
 
-            var approverId = Guid.Parse(User.FindFirst("sub")?.Value ?? throw new UnauthorizedAccessException());
-            await _leaveService.RejectAsync(leaveId, approverId, dto.Comment);
+            var claim = User.FindFirst(JwtRegisteredClaimNames.Sub)
+                  ?? User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (claim == null)
+                throw new UnauthorizedAccessException("Approval ID claim missing");
+            var approverId = Guid.Parse(claim.Value);
+            await _leaveService.RejectAsync(Guid.Parse(id), approverId, comment);
             return Ok(new { message = "Leave rejected successfully." });
         }
     }

@@ -1,22 +1,25 @@
-using Serilog;
+using CloudinaryDotNet;
 using FluentValidation;
-using Microsoft.EntityFrameworkCore;
-using System.Text;
-using ZucoHR.Infrastructure.Data;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using ZucoHR.Infrastructure.Repository;
-using ZucoHR.Infrastructure.Interfaces;
+using Microsoft.OpenApi.Models;
+using QuestPDF.Infrastructure;
+using Serilog;
+using System.Text;
 using ZucoHR.Application.Interfaces;
 using ZucoHR.Application.Services;
-using ZucoHR.Infrastructure;
-using ZucoHR.Shared;
-using FluentValidation.AspNetCore;
-using Microsoft.AspNetCore.Identity;
-using ZucoHR.Domain.Entities;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
+using ZucoHR.Application.Services.ZucoHR.API.Services.Implementations;
 using ZucoHR.Application.Utilities;
+using ZucoHR.Domain.Entities;
+using ZucoHR.Infrastructure;
+using ZucoHR.Infrastructure.Data;
+using ZucoHR.Infrastructure.Interfaces;
+using ZucoHR.Infrastructure.Repository;
+using ZucoHR.Shared;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,6 +60,7 @@ builder.Services.Configure<IdentityOptions>(options =>
 // Authentication (JWT)
 var jwt = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwt["Key"]);
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -64,19 +68,47 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false;
+    options.RequireHttpsMetadata = false; // change to true in production
     options.SaveToken = true;
+
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+
         ValidIssuer = jwt["Issuer"],
         ValidAudience = jwt["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuerSigningKey = true
+
+        //NameClaimType = "sub", // ?? critical
+        ClockSkew = TimeSpan.Zero
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+
+            if (!string.IsNullOrEmpty(accessToken) &&
+                path.StartsWithSegments("/hubs/notifications"))
+            {
+                context.Token = accessToken;
+            }
+
+            return Task.CompletedTask;
+        },
+
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine($"JWT Error: {context.Exception.Message}");
+            return Task.CompletedTask;
+        }
     };
 });
-
 // DI - Repositories (Infrastructure implementations)
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
@@ -84,11 +116,13 @@ builder.Services.AddScoped<ILeaveRepository, LeaveRepository>();
 builder.Services.AddScoped<IPerformanceRepository, PerformanceRepository>();
 builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
 builder.Services.AddScoped<IRecruitmentRepository, RecruitmentRepository>();
-builder.Services.AddScoped<IOnboardingRepository, OnboardingRepository>();
+//builder.Services.AddScoped<IOnboardingRepository, OnboardingRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IPayrollRepository, PayrollRepository>();
-
+builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 // DI - Services
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<ILeaveService, LeaveService>();
@@ -98,15 +132,42 @@ builder.Services.AddScoped<IExpenseService, ExpenseService>();
 builder.Services.AddScoped<IRecruitmentService, RecruitmentService>();
 builder.Services.AddScoped<IOnboardingService, OnboardingService>();
 builder.Services.AddScoped<ITokenGenerator, TokenGenerator>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+builder.Services.AddScoped<ICompanyService, CompanyService>();
 
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings")
+);
+
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<TenantContext>();
 builder.Services.AddScoped<ITenantService, TenantService>();
+builder.Services.AddScoped<IAccessService, AccessService>();
 
+var cloudinarySettings = builder.Configuration.GetSection("Cloudinary").Get<CloudinarySettings>();
+// Initialize Cloudinary with the settings
+var cloudinary = new Cloudinary(new Account(
+    cloudinarySettings.CloudName,
+    cloudinarySettings.ApiKey,
+    cloudinarySettings.ApiSecret
+));
+
+builder.Services.AddSingleton(cloudinary);
+builder.Services.AddSignalR();
+
+QuestPDF.Settings.License = LicenseType.Community;
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", p => p.AllowAnyHeader().AllowAnyMethod().WithOrigins("*"));
+    options.AddPolicy("CorsPolicy", p => p
+    .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
+    );
 
 });
 
@@ -151,9 +212,9 @@ using (var scope = app.Services.CreateScope())
 {
     var ctx = scope.ServiceProvider.GetRequiredService<ZucoHrDbContext>();
     ctx.Database.Migrate();
-    await SeedData.SeedAsync(scope.ServiceProvider);
+    await SeedData.Initialize(ctx);
 }
-
+app.MapHub<NotificationHub>("/hubs/notifications");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -163,7 +224,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
-app.UseCors("AllowAll");
+app.UseStaticFiles();
+app.UseCors("CorsPolicy");
 app.UseAuthentication();
 app.UseMiddleware<TenantMiddleware>();
 app.UseAuthorization();

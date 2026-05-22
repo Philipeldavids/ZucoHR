@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ZucoHR.Domain.Entities;
+using ZucoHR.Shared;
 
 namespace ZucoHR.Infrastructure.Interfaces
 {
     public interface IExpenseRepository
     {
-        Task<List<Expense>> GetAllAsync(Guid orgId);
+        Task<PaginatedResponse<Expense>> GetAllAsync(Guid orgId, int page, int pageSize);
         Task<List<Expense>> GetByEmployeeAsync(Guid orgId,Guid employeeId);
         Task<Expense?> GetByIdAsync(Guid orgId, Guid id);
 

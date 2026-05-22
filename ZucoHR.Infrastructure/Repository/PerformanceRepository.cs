@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ZucoHR.Domain.Entities;
 using ZucoHR.Infrastructure.Data;
 using ZucoHR.Infrastructure.Interfaces;
+using ZucoHR.Shared;
 
 namespace ZucoHR.Infrastructure.Repository
 {
@@ -29,8 +30,12 @@ namespace ZucoHR.Infrastructure.Repository
 
         public async Task<PerformanceReview?> GetByIdAsync(Guid orgId, Guid id)
         {
-            return await _context.PerformanceReviews
+            var reviewed = await _context.PerformanceReviews
+                .Include(x=>x.Employee)
+                .Include(x => x.Goals)
+                .Include(x => x.Competencies)
                 .FirstOrDefaultAsync(x => x.Id == id && x.OrganizationId == orgId);
+            return reviewed;
         }
 
         public async Task CreateAsync(PerformanceReview review)
@@ -39,16 +44,39 @@ namespace ZucoHR.Infrastructure.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(PerformanceReview review)
+        public async Task Update(PerformanceReview review)
         {
-            _context.PerformanceReviews.Update(review);
-            await _context.SaveChangesAsync();
+           
         }
 
         public async Task DeleteAsync(PerformanceReview review)
         {
             _context.PerformanceReviews.Remove(review);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<PaginatedResponse<PerformanceReview>> GetReviews(Guid orgId, int page = 1, int pageSize = 10)
+        {
+            var query = _context.PerformanceReviews.AsQueryable()
+               .Where(x => x.OrganizationId == orgId)
+               .Include(x => x.Employee)
+                .Include(x => x.Competencies)
+                .Include(x => x.Goals);
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .OrderBy(e => e.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PaginatedResponse<PerformanceReview>
+            {
+                Data = items,
+                Total = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
         }
     }
 }

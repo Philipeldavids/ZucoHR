@@ -14,7 +14,7 @@ namespace ZucoHR.Shared
             public CreateEmployeeValidator()
             {
                 RuleFor(x => x.Department).NotEmpty().MaximumLength(100);
-                RuleFor(x => x.BaseSalary).GreaterThan(0);
+                RuleFor(x => x.BasicSalary).GreaterThan(0);
             }
         }
     
