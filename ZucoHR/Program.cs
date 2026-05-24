@@ -49,11 +49,11 @@ options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")
 var optionsBuilder = new DbContextOptionsBuilder<ZucoHrDbContext>();
 optionsBuilder.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 
-using (var context = new ZucoHrDbContext(optionsBuilder.Options))
-{
-    context.Database.EnsureCreated();
-    Console.WriteLine("Database ensured created.");
-}
+//using (var context = new ZucoHrDbContext(optionsBuilder.Options))
+//{
+//    context.Database.EnsureCreated();
+//    Console.WriteLine("Database ensured created.");
+//}
 
 builder.Services.AddIdentity<User, Role>()
                 .AddEntityFrameworkStores<ZucoHrDbContext>()
