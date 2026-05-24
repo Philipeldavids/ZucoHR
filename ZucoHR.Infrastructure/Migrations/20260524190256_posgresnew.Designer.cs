@@ -13,8 +13,8 @@ using ZucoHR.Infrastructure.Data;
 namespace ZucoHR.Infrastructure.Migrations
 {
     [DbContext(typeof(ZucoHrDbContext))]
-    [Migration("20260524184942_postgrenew")]
-    partial class postgrenew
+    [Migration("20260524190256_posgresnew")]
+    partial class posgresnew
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

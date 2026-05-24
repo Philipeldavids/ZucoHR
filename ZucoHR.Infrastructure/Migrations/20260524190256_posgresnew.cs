@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ZucoHR.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class postgrenew : Migration
+    public partial class posgresnew : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
