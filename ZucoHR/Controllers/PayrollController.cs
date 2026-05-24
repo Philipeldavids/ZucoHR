@@ -8,7 +8,6 @@ using ZucoHR.Application.Utilities;
 using ZucoHR.Domain.DTO;
 using ZucoHR.Domain.Entities;
 using ZucoHR.Infrastructure.Data;
-using ZucoHR.Infrastructure.Migrations;
 using ZucoHR.Shared;
 
 namespace ZucoHR.Controllers

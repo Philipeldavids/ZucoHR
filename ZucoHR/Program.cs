@@ -40,9 +40,20 @@ var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 //builder.Services.AddDbContext<ZucoHrDbContext>(options =>
 //    options.UseNpgsql(conn));
 
-builder.Services.AddDbContext<ZucoHrDbContext>(options =>
-    options.UseSqlServer(conn));
+//builder.Services.AddDbContext<ZucoHrDbContext>(options =>
+//    options.UseSqlServer(conn));
 
+builder.Services.AddDbContext<ZucoHrDbContext>(options =>
+options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+var optionsBuilder = new DbContextOptionsBuilder<ZucoHrDbContext>();
+optionsBuilder.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+
+using (var context = new ZucoHrDbContext(optionsBuilder.Options))
+{
+    context.Database.EnsureCreated();
+    Console.WriteLine("Database ensured created.");
+}
 
 builder.Services.AddIdentity<User, Role>()
                 .AddEntityFrameworkStores<ZucoHrDbContext>()
@@ -136,6 +147,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings")

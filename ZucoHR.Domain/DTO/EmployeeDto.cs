@@ -25,6 +25,7 @@ namespace ZucoHR.Domain.DTO
 
         public string? Location { get; set; }
         public string Status { get; set; }
+        public string EmploymentType { get; set; }
 
         //public string Avatar { get; set; }
         //public string ManagerId { get; set; }

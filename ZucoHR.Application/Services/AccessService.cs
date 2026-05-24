@@ -63,17 +63,14 @@ namespace ZucoHR.Application.Services
         {
             var now = DateTime.UtcNow;
 
-            var hasFeature = await (
-                from sub in _context.OrgSubscription
-                join pf in _context.PlanFeatures on sub.PlanId equals pf.PlanId
-                join f in _context.Features on pf.FeatureId equals f.Id
-                where sub.OrganizationId == organizationId
-                    && sub.IsActive
-                    && sub.StartDate <= now
-                    && sub.EndDate >= now
-                    && f.Code == featureCode
-                select f
-            ).AnyAsync();
+            var hasFeature = await _context.OrgSubscription
+    .Where(sub =>
+        sub.OrganizationId == organizationId &&
+        sub.IsActive &&
+        sub.StartDate <= now &&
+        sub.EndDate >= now)
+    .SelectMany(sub => sub.Plan.Features)
+    .AnyAsync(pf => pf.Feature.Code == featureCode);
 
             return hasFeature;
         }

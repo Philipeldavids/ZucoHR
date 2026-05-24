@@ -8,9 +8,9 @@ namespace ZucoHR.Domain.Entities
 {
     public class PlanFeature
     {
-        public Guid PlanId { get; set; }
+        public int Id { get; set; }
         public SubscriptionPlan Plan { get; set; }
-
+         public int PlanId { get; set; }
         public Guid FeatureId { get; set; }
         public Feature Feature { get; set; }
     }

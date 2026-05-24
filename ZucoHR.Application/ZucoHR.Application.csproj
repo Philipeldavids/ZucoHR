@@ -23,5 +23,9 @@
     <ProjectReference Include="..\ZucoHR.Infrastructure\ZucoHR.Infrastructure.csproj" />
     <ProjectReference Include="..\ZucoHR.Shared\ZucoHR.Shared.csproj" />
   </ItemGroup>
-
+	<PropertyGroup>
+		<SixLaborsLicenseKey>
+			Id=ctm_01ksb0ksw6a3cqkbfc33k4kgsq;Kind=Community;ExpiryDateUtc=2027-08-21T18:12:30.3391461Z;Key=3/wJ7L/9byk8Mjk04OajsE22QOyIFpzJhDd8mYoHCZOuxqRgvststK/rcICcmModKdF6aIbkXYS4TRez7+DtLg==
+		</SixLaborsLicenseKey>
+	</PropertyGroup>
 </Project>

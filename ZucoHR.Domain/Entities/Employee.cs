@@ -25,6 +25,14 @@ namespace ZucoHR.Domain.Entities
         public decimal AnnualRent { get; set; }
         public string? Position { get; set; }
         public string Status { get; set; }
+
+        public TimeSpan WorkStartTime { get; set; } = new TimeSpan(8, 0, 0);
+
+        public TimeSpan WorkEndTime { get; set; } = new TimeSpan(17, 0, 0);
+
+        public int GracePeriodMinutes { get; set; } = 15;
+        public string EmploymentType { get; set; }
+        
         public string? Location { get; set; }
         //public string? Avatar {  get; set; }
        // public string? ManagerId {  get; set; }

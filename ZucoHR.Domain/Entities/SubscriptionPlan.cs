@@ -8,11 +8,12 @@ namespace ZucoHR.Domain.Entities
 {
     public class SubscriptionPlan
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
         public string Name { get; set; } // Basic, Pro, Enterprise
         public decimal Price { get; set; }
 
-        public ICollection<PlanFeature> Features { get; set; }
+        public ICollection<PlanFeature> Features { get; set; } = new List<PlanFeature>();
+        public ICollection<OrganizationSubscription> OrganizationSubscriptions { get; set; } 
     }
 }

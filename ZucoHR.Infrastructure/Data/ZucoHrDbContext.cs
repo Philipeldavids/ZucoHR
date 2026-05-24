@@ -15,6 +15,8 @@ namespace ZucoHR.Infrastructure.Data
         public ZucoHrDbContext(DbContextOptions<ZucoHrDbContext> options) : base(options)
         { }
 
+       // public DbSet<Shift> Shifts { get; set; }
+        public DbSet<Attendance> Attendances { get; set; }
         public DbSet<PlanFeature> PlanFeatures { get; set; }
 
         public DbSet<Organization> Organizations { get; set; }
@@ -45,7 +47,10 @@ namespace ZucoHR.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<PlanFeature>().HasKey(p => p.PlanId);
+           // modelBuilder.Entity<Shift>().HasKey(s => s.Id);
+            modelBuilder.Entity<Attendance>().HasKey(a => a.Id);
+            
+            modelBuilder.Entity<PlanFeature>().HasKey(p => p.Id);
             modelBuilder.Entity<Organization>().HasKey(o => o.Id);
             //modelBuilder.Entity<Role>().HasKey(o => o.Id);
             modelBuilder.Entity<UserRole>().HasKey(u => u.UserId);
@@ -57,7 +62,11 @@ namespace ZucoHR.Infrastructure.Data
             modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
             modelBuilder.Entity<Employee>().HasIndex(e => e.EmployeeNumber).IsUnique();
             modelBuilder.Entity<LeaveRequest>().HasKey(e => e.Id);
-
+            modelBuilder.Entity<OrganizationSubscription>()
+    .HasOne(x => x.Plan)
+    .WithMany(x => x.OrganizationSubscriptions)
+    .HasForeignKey(x => x.PlanId)
+    .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<ReviewCompetency>()
     .HasOne(x => x.PerformanceReview)
     .WithMany(x => x.Competencies)
@@ -95,8 +104,81 @@ namespace ZucoHR.Infrastructure.Data
             .WithOne(s => s.PayRun)
             .HasForeignKey(s => s.PayRunId)
             .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<SubscriptionPlan>(entity =>
+            {
+                entity.Property(x => x.Price)
+                    .HasPrecision(18, 2);
+            });
+            modelBuilder.Entity<PlanFeature>()
+    .HasOne(pf => pf.Plan)
+    .WithMany(p => p.Features)
+    .HasForeignKey(pf => pf.PlanId)
+    .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<RefreshToken>()
+    .HasOne(r => r.User)
+    .WithMany(u => u.RefreshTokens)
+    .HasForeignKey(r => r.UserId)
+    .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Payslip>().Property(p => p.NetPay).HasColumnType("decimal(18,2)");
+            modelBuilder.Entity<ReviewCompetency>(entity =>
+            {
+                entity.Property(x => x.Score)
+                    .HasPrecision(18, 2);
+                
+            });
+                modelBuilder.Entity<PayRun>(entity =>
+            {
+                entity.Property(x => x.TotalGross)
+                    .HasPrecision(18, 2);
+                entity.Property(x => x.TotalDeductions)
+                    .HasPrecision(18, 2);
+                entity.Property(x => x.TotalNet)
+                    .HasPrecision(18, 2);
+            });
+                modelBuilder.Entity<JobPost>(entity =>
+            {
+                entity.Property(x => x.SalaryMin)
+                    .HasPrecision(18, 2);
+                entity.Property(x => x.SalaryMax)
+                    .HasPrecision(18, 2);
+                
+            });
+                modelBuilder.Entity<Employee>(entity =>
+            {
+                entity.Property(x => x.BasicSalary)
+                    .HasPrecision(18, 2);
+                entity.Property(x => x.Allowance)
+                    .HasPrecision(18, 2);
+                entity.Property(x => x.AnnualRent)
+                    .HasPrecision(18, 2);
+            });
+                modelBuilder.Entity<Payslip>(entity =>
+            {
+                entity.Property(x => x.BasicSalary)
+                    .HasPrecision(18, 2);
+                entity.Property(x => x.Allowances)
+                   .HasPrecision(18, 2);
+                entity.Property(x => x.NHIS)
+                   .HasPrecision(18, 2);
+                entity.Property(x => x.NHF)
+                   .HasPrecision(18, 2);
+                entity.Property(x => x.GrossPay)
+                   .HasPrecision(18, 2);
+                entity.Property(x => x.RentRelief)
+                   .HasPrecision(18, 2);
+                entity.Property(x => x.Pension)
+                    .HasPrecision(18, 2);
+
+                entity.Property(x => x.Tax)
+                    .HasPrecision(18, 2);
+                entity.Property(x => x.OtherDeductions)
+                    .HasPrecision(18, 2);
+                entity.Property(x => x.TotalDeductions)
+                    .HasPrecision(18, 2);
+                entity.Property(x => x.NetPay)
+                    .HasPrecision(18, 2);
+            });
+            //modelBuilder.Entity<Payslip>().Property(p => p.NetPay).HasColumnType("decimal(18,2)");
             modelBuilder.Entity<PerformanceReview>(entity =>
             {
                 entity.HasKey(x => x.Id);

@@ -149,7 +149,7 @@ namespace ZucoHR.Application.Services
                 Token = tokenStr,
                 ExpiresAt = DateTime.UtcNow.AddDays(refreshExpiryDays),
                 IsRevoked = false,
-                UserId = Guid.Parse(user.Id),
+                UserId =user.Id,
                 User = user
             };
             await _refreshRepo.AddAsync(rt);

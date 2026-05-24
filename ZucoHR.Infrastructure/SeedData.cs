@@ -146,21 +146,21 @@ namespace ZucoHR.Infrastructure
 
             var starter = new SubscriptionPlan
             {
-                Id = Guid.NewGuid(),
+                
                 Name = "Starter",
                 Price = 0
             };
 
             var growth = new SubscriptionPlan
             {
-                Id = Guid.NewGuid(),
+                
                 Name = "Growth",
                 Price = 50000
             };
 
             var enterprise = new SubscriptionPlan
             {
-                Id = Guid.NewGuid(),
+                
                 Name = "Enterprise",
                 Price = 150000
             };
