@@ -80,6 +80,7 @@ namespace ZucoHR.Application.Services
             emp.AnnualRent = dto.AnnualRent;
             emp.Department = dto.Department;
             emp.UpdatedAt = DateTime.UtcNow;
+            emp.EmploymentType = dto.EmploymentType;
             emp.PhoneNumber = dto.PhoneNumber;
             //emp.UserId = Guid.NewGuid().ToString();        
             emp.Status = dto.Status;
@@ -130,6 +131,7 @@ namespace ZucoHR.Application.Services
             emp.UpdatedAt = DateTime.UtcNow;
             emp.PhoneNumber = dto.PhoneNumber;
             emp.EmployeeNumber = dto.EmployeeNumber;
+            emp.EmploymentType = dto.EmploymentType;
             emp.Status = dto.Status;
             //emp.Avatar = dto.Avatar;
             emp.Location = dto.Location;
