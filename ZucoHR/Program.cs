@@ -169,7 +169,7 @@ builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", p => p
-    .WithOrigins("https://zucohr.com")
+    .WithOrigins("https://www.zucohr.com")
     //.WithOrigins("http://localhost:5173")
             .AllowAnyHeader()
             .AllowAnyMethod()
