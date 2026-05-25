@@ -37,8 +37,7 @@ builder.Services.AddControllers().AddFluentValidation();
 
 // DbContext
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
-//builder.Services.AddDbContext<ZucoHrDbContext>(options =>
-//    options.UseNpgsql(conn));
+
 
 //builder.Services.AddDbContext<ZucoHrDbContext>(options =>
 //    options.UseSqlServer(conn));
@@ -49,11 +48,6 @@ options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")
 var optionsBuilder = new DbContextOptionsBuilder<ZucoHrDbContext>();
 optionsBuilder.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 
-//using (var context = new ZucoHrDbContext(optionsBuilder.Options))
-//{
-//    context.Database.EnsureCreated();
-//    Console.WriteLine("Database ensured created.");
-//}
 
 builder.Services.AddIdentity<User, Role>()
                 .AddEntityFrameworkStores<ZucoHrDbContext>()
@@ -175,7 +169,7 @@ builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", p => p
-    .WithOrigins("http://localhost:5173")
+    .WithOrigins("https://zucohr5.vercel.app")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials()
@@ -223,6 +217,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var ctx = scope.ServiceProvider.GetRequiredService<ZucoHrDbContext>();
+    
     ctx.Database.Migrate();
     await SeedData.Initialize(ctx);
 }
