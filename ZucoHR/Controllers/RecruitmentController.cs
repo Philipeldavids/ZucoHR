@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using ZucoHR.Application.Interfaces;
 using ZucoHR.Domain.DTO;
 using ZucoHR.Domain.Entities;
+using ZucoHR.Infrastructure.Data;
 
 namespace ZucoHR.Controllers
 {
@@ -15,9 +17,11 @@ namespace ZucoHR.Controllers
     {
         private readonly IRecruitmentService _service;
         private readonly ITenantService _tenantService;
-        public RecruitmentController(ITenantService tenantService,IRecruitmentService service)
+        public readonly ZucoHrDbContext _context;
+        public RecruitmentController(ZucoHrDbContext context, ITenantService tenantService, IRecruitmentService service)
         {
             _service = service;
+            _context = context;
             _tenantService = tenantService;
         }
 
@@ -32,16 +36,16 @@ namespace ZucoHR.Controllers
             {
                 return Ok(await _service.GetJobs(page, pageSize));
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
-            
+
         }
 
         [HttpPost("jobs")]
         [Authorize(Roles = "Admin, HR, HR Manager")]
-        public async Task<IActionResult> CreateJob([FromBody]JobPostRequest job)
+        public async Task<IActionResult> CreateJob([FromBody] JobPostRequest job)
         {
             await _service.CreateJob(job);
             return Ok(new { message = "Job created" });
@@ -49,7 +53,7 @@ namespace ZucoHR.Controllers
 
         [HttpPut("jobs/{id}")]
         [Authorize(Roles = "Admin, HR, HR Manager")]
-        public async Task<IActionResult> UpdateJob(Guid id, [FromBody]JobPostRequest job)
+        public async Task<IActionResult> UpdateJob(Guid id, [FromBody] JobPostRequest job)
         {
             await _service.UpdateJob(id, job);
             return Ok(new { message = "Job updated" });
@@ -98,7 +102,7 @@ namespace ZucoHR.Controllers
                 var res = await _service.GetApplicants(page, pageSize);
                 return Ok(res);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -117,7 +121,7 @@ namespace ZucoHR.Controllers
             try
             {
                 var claim = User.FindFirst("employeeId");
-                    
+
 
                 if (claim == null)
                     return Unauthorized();
@@ -146,10 +150,55 @@ namespace ZucoHR.Controllers
 
         [HttpPatch("applicants/{id}/stage")]
         [Authorize(Roles = "Admin, HR, HR Manager")]
-        public async Task<IActionResult> UpdateStatus(string id, [FromBody]UpdateApplicantRequest request)
+        public async Task<IActionResult> UpdateStatus(string id, [FromBody] UpdateApplicantRequest request)
         {
             await _service.UpdateStatus(Guid.Parse(id), request.Status);
             return Ok(new { message = "Status updated" });
+        }
+    
+    [HttpGet("applicants/{candidateId}/cv")]
+    [Authorize(Roles = "Admin, HR, HR Manager")]
+        public async Task<IActionResult> DownloadCv(string candidateId)
+        {
+            var candidate = await _context.Applicants
+                .FirstOrDefaultAsync(c => c.Id == Guid.Parse(candidateId));
+
+            if (candidate == null)
+                return NotFound("Candidate not found");
+
+            if (string.IsNullOrWhiteSpace(candidate.ResumeUrl))
+                return NotFound("CV not uploaded");
+
+            var filePath = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "wwwroot",
+                candidate.ResumeUrl
+            );
+
+            if (!System.IO.File.Exists(filePath))
+                return NotFound("CV file missing");
+
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+
+            var contentType = "application/octet-stream";
+
+            var extension = Path.GetExtension(filePath).ToLower();
+
+            if (extension == ".pdf")
+                contentType = "application/pdf";
+
+            if (extension == ".doc")
+                contentType = "application/msword";
+
+            if (extension == ".docx")
+                contentType =
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+            return File(
+                fileBytes,
+                contentType,
+                Path.GetFileName(filePath)
+            );
         }
     }
 }
