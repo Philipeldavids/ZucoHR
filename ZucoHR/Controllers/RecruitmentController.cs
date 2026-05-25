@@ -169,10 +169,15 @@ namespace ZucoHR.Controllers
             if (string.IsNullOrWhiteSpace(candidate.ResumeUrl))
                 return NotFound("CV not uploaded");
 
+            var resumePath = candidate.ResumeUrl
+            .TrimStart('/', '\\')
+            .Replace("/", Path.DirectorySeparatorChar.ToString())
+            .Replace("\\", Path.DirectorySeparatorChar.ToString());
+
             var filePath = Path.Combine(
                 Directory.GetCurrentDirectory(),
                 "wwwroot",
-                candidate.ResumeUrl
+                resumePath
             );
 
             if (!System.IO.File.Exists(filePath))

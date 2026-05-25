@@ -261,7 +261,7 @@ namespace ZucoHR.Application.Services
                     await request.Resume.CopyToAsync(stream);
                 }
 
-                resumeUrl = $"/resumes/{fileName}";
+                resumeUrl = $"resumes/{fileName}";
             }
 
             // =========================
