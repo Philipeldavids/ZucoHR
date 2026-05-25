@@ -169,7 +169,8 @@ builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", p => p
-    .WithOrigins("https://zucohr5.vercel.app")
+    .WithOrigins("https://zucohr.com")
+    //.WithOrigins("http://localhost:5173")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials()
