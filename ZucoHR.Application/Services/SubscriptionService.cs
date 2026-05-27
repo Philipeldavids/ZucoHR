@@ -65,35 +65,23 @@ namespace ZucoHR.Application.Services
                 await _context.SubscriptionPlans
                     .FindAsync(planId);
 
-            var subscription =
-                new OrganizationSubscription
-                {
-                   
+            var subscription = await _context.OrgSubscription.FirstOrDefaultAsync(x => x.PaymentReference == reference);
+            subscription.SubscriptionId = planId;
 
-                    OrganizationId =
-                        organizationId,
+            subscription.StartDate = DateTime.UtcNow;
 
-                    SubscriptionId = planId,
-
-                    StartDate = DateTime.UtcNow,
-
-                    EndDate =
+            subscription.EndDate =
                         DateTime.UtcNow
-                            .AddMonths(1),
+                            .AddMonths(1);
 
-                    IsActive = true,
-                   PaymentConfirmed = true,
+            subscription.IsActive = true;
+            subscription.PaymentConfirmed = true;
 
-                    Status = "active",
-
-                    PaymentReference =
-                        reference,
-
-                    Amount = plan.Price
-                };
+            subscription.Amount = plan.Price;
+               
 
             _context.OrgSubscription
-                .Add(subscription);
+                .Update(subscription);
 
             await _context.SaveChangesAsync();
         }
