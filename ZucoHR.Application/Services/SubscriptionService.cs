@@ -80,8 +80,8 @@ namespace ZucoHR.Application.Services
             subscription.Amount = plan.Price;
                
 
-            _context.OrgSubscription
-                .Update(subscription);
+            //_context.OrgSubscription
+              //  .Update(subscription);
 
             await _context.SaveChangesAsync();
         }
@@ -144,6 +144,7 @@ namespace ZucoHR.Application.Services
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(1),
                 IsActive = false,
+                CreatedAt = DateTime.UtcNow,
                 PaymentConfirmed= false,
                 Status = "active"
             };
