@@ -203,7 +203,7 @@ namespace ZucoHR.Application.Services
                 reference,
 
                 callback_url =
-                    "http://localhost:5174/payment-success",
+                    "http://zucohr.com/payment-success",
 
                 metadata = new
                 {
