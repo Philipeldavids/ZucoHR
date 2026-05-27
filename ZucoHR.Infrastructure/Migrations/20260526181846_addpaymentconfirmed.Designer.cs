@@ -13,8 +13,8 @@ using ZucoHR.Infrastructure.Data;
 namespace ZucoHR.Infrastructure.Migrations
 {
     [DbContext(typeof(ZucoHrDbContext))]
-    [Migration("20260524190256_posgresnew")]
-    partial class posgresnew
+    [Migration("20260526181846_addpaymentconfirmed")]
+    partial class addpaymentconfirmed
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -718,6 +718,12 @@ namespace ZucoHR.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -727,15 +733,28 @@ namespace ZucoHR.Infrastructure.Migrations
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("PlanId")
-                        .HasColumnType("integer");
+                    b.Property<bool>("PaymentConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("PaymentReference")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("SubscriptionId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("PlanId");
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("SubscriptionId");
 
                     b.ToTable("OrgSubscription");
                 });
@@ -1276,11 +1295,19 @@ namespace ZucoHR.Infrastructure.Migrations
 
             modelBuilder.Entity("ZucoHR.Domain.Entities.OrganizationSubscription", b =>
                 {
-                    b.HasOne("ZucoHR.Domain.Entities.SubscriptionPlan", "Plan")
-                        .WithMany("OrganizationSubscriptions")
-                        .HasForeignKey("PlanId")
+                    b.HasOne("ZucoHR.Domain.Entities.Organization", "Organization")
+                        .WithMany("OrgSubscriptions")
+                        .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("ZucoHR.Domain.Entities.SubscriptionPlan", "Plan")
+                        .WithMany("OrganizationSubscriptions")
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
 
                     b.Navigation("Plan");
                 });
@@ -1406,6 +1433,8 @@ namespace ZucoHR.Infrastructure.Migrations
 
             modelBuilder.Entity("ZucoHR.Domain.Entities.Organization", b =>
                 {
+                    b.Navigation("OrgSubscriptions");
+
                     b.Navigation("Users");
                 });
 

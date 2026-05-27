@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ZucoHR.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class posgresnew : Migration
+    public partial class posgrenew : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -488,17 +488,27 @@ namespace ZucoHR.Infrastructure.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     OrganizationId = table.Column<Guid>(type: "uuid", nullable: false),
-                    PlanId = table.Column<int>(type: "integer", nullable: false),
+                    SubscriptionId = table.Column<int>(type: "integer", nullable: false),
                     StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false),
                     EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    PaymentReference = table.Column<string>(type: "text", nullable: false),
+                    Amount = table.Column<decimal>(type: "numeric", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_OrgSubscription", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_OrgSubscription_SubscriptionPlans_PlanId",
-                        column: x => x.PlanId,
+                        name: "FK_OrgSubscription_Organizations_OrganizationId",
+                        column: x => x.OrganizationId,
+                        principalTable: "Organizations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_OrgSubscription_SubscriptionPlans_SubscriptionId",
+                        column: x => x.SubscriptionId,
                         principalTable: "SubscriptionPlans",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -788,9 +798,14 @@ namespace ZucoHR.Infrastructure.Migrations
                 column: "EmployeeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_OrgSubscription_PlanId",
+                name: "IX_OrgSubscription_OrganizationId",
                 table: "OrgSubscription",
-                column: "PlanId");
+                column: "OrganizationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrgSubscription_SubscriptionId",
+                table: "OrgSubscription",
+                column: "SubscriptionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payslips_EmployeeId",

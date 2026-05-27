@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ZucoHR.Infrastructure.Data;
@@ -12,9 +13,11 @@ using ZucoHR.Infrastructure.Data;
 namespace ZucoHR.Infrastructure.Migrations
 {
     [DbContext(typeof(ZucoHrDbContext))]
-    partial class ZucoHrDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260526172933_posgrenew")]
+    partial class posgrenew
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -730,10 +733,8 @@ namespace ZucoHR.Infrastructure.Migrations
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid");
 
-                    b.Property<bool>("PaymentConfirmed")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("PaymentReference")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("StartDate")

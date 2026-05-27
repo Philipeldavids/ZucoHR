@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ZucoHR.Infrastructure.Data;
@@ -12,9 +13,11 @@ using ZucoHR.Infrastructure.Data;
 namespace ZucoHR.Infrastructure.Migrations
 {
     [DbContext(typeof(ZucoHrDbContext))]
-    partial class ZucoHrDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260527132333_addpaymentrefnullable")]
+    partial class addpaymentrefnullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

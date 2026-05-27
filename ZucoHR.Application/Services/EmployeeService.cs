@@ -55,7 +55,7 @@ namespace ZucoHR.Application.Services
 
             //var user = await _userRepo.GetByIdAsync(dto.UserId, orgId);
             var password = PasswordGenerator.Generate(10);
-
+            
             User newuser = new User();
             
             newuser.UserName = dto.Email;

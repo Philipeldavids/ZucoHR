@@ -148,7 +148,7 @@ namespace ZucoHR.Infrastructure
             {
                 
                 Name = "Starter",
-                Price = 0
+                Price = 20000
             };
 
             var growth = new SubscriptionPlan

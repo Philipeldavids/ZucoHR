@@ -65,7 +65,12 @@ namespace ZucoHR.Infrastructure.Data
             modelBuilder.Entity<OrganizationSubscription>()
     .HasOne(x => x.Plan)
     .WithMany(x => x.OrganizationSubscriptions)
-    .HasForeignKey(x => x.PlanId)
+    .HasForeignKey(x => x.SubscriptionId)
+    .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<OrganizationSubscription>()
+    .HasOne(x => x.Organization)
+    .WithMany(x=>x.OrgSubscriptions)
+    .HasForeignKey(x => x.OrganizationId)
     .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<ReviewCompetency>()
     .HasOne(x => x.PerformanceReview)

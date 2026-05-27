@@ -21,6 +21,7 @@ namespace ZucoHR.Domain.Entities
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        public ICollection<OrganizationSubscription> OrgSubscriptions { get; set; }
         public ICollection<User> Users { get; set; }
     }
 }

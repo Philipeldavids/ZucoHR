@@ -14,6 +14,6 @@ namespace ZucoHR.Domain.Entities
         public decimal Price { get; set; }
 
         public ICollection<PlanFeature> Features { get; set; } = new List<PlanFeature>();
-        public ICollection<OrganizationSubscription> OrganizationSubscriptions { get; set; } 
+        public ICollection<OrganizationSubscription> OrganizationSubscriptions { get; set; } = new List<OrganizationSubscription>();
     }
 }
