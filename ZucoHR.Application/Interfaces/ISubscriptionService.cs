@@ -14,7 +14,7 @@ namespace ZucoHR.Application.Interfaces
         Task VerifyAndActivateSubscription(
     string reference
 );
-        Task<JsonElement> InitializePayment(
+        Task<PaystackInitializeResponse> InitializePayment(
     InitializeSubscriptionPaymentDto dto
 );
         Task<InitializeSubscriptionResponseDto> CreateSubscription(

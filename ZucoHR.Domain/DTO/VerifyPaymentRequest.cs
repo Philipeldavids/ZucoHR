@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace ZucoHR.Domain.DTO
 {
-    public class PaystackInitializeResponse
+    public class VerifyPaymentRequest
     {
-        public string AuthorizationUrl { get; set; }
-
-        public string Reference { get; set; }
+              public string Reference { get; set; }
     }
 }

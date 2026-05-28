@@ -10,7 +10,7 @@ namespace ZucoHR.Domain.DTO
     {
         public string AuthorizationUrl { get; set; }
 
-        //public string Reference { get; set; }
+        public string Reference { get; set; }
 
         public int SubscriptionId { get; set; }
     }

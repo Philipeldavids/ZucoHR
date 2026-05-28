@@ -44,66 +44,22 @@ namespace ZucoHR.Controllers
                 .Replace("-", "")
                 .ToLower();
         }
-        [AllowAnonymous]
+
+        [Authorize]
         [HttpPost("webhook")]
-        public async Task<IActionResult> Webhook()
+        public async Task<IActionResult> Webhook(string request)
         {
-            Request.EnableBuffering();
-
-            using var reader =
-                new StreamReader(
-                    Request.Body,
-                    Encoding.UTF8,
-                    leaveOpen: true
-                );
-
-            var body =
-                await reader.ReadToEndAsync();
-
-            Request.Body.Position = 0;
-
-            var signature =
-                Request.Headers["x-paystack-signature"]
-                    .ToString();
-
-            var secret =
-                _configuration["Paystack:SecretKey"];
-
-            var hash =
-                ComputeSha512Hash(body, secret);
-
-            Console.WriteLine($"BODY: {body}");
-            Console.WriteLine($"HASH: {hash}");
-            Console.WriteLine($"SIGNATURE: {signature}");
-
-            if (hash != signature)
-                return Unauthorized();
-
-            dynamic payload =
-                JsonConvert.DeserializeObject(body);
-
-            if (payload.@event == "charge.success")
+            try
             {
-                string reference =
-                    payload.data.reference;
-
                 await _subscriptionService
-                    .VerifyAndActivateSubscription(reference);
+                    .VerifyAndActivateSubscription(request);
+                return Ok();
             }
-
-            return Ok();
+            catch (Exception ex) { 
+                return BadRequest(ex.Message);
+            }
+            
         }
-        //        [HttpPost("initialize")]
-        //        public async Task<IActionResult> InitializePayment(
-        //    InitializeSubscriptionPaymentDto dto
-        //)
-        //        {
-        //            var result =
-        //                await _subscriptionService
-        //                    .InitializePayment(dto);
-
-        //            return Ok(result);
-        //        }
-        //    
+    
     }
 }

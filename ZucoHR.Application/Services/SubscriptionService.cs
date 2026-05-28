@@ -8,6 +8,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.AccessControl;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -65,7 +66,8 @@ namespace ZucoHR.Application.Services
                 await _context.SubscriptionPlans
                     .FindAsync(planId);
 
-            var subscription = await _context.OrgSubscription.FirstOrDefaultAsync(x => x.PaymentReference == reference);
+            var subscription = await _context.OrgSubscription.FirstOrDefaultAsync(x => x.PaymentReference == reference && x.OrganizationId ==organizationId);
+            if (subscription == null) return;
             subscription.SubscriptionId = planId;
 
             subscription.StartDate = DateTime.UtcNow;
@@ -78,7 +80,7 @@ namespace ZucoHR.Application.Services
             subscription.PaymentConfirmed = true;
             subscription.PaymentReference = reference;
             subscription.Amount = plan.Price;
-               
+            subscription.Plan = plan;
 
             //_context.OrgSubscription
               //  .Update(subscription);
@@ -145,6 +147,7 @@ namespace ZucoHR.Application.Services
                 EndDate = DateTime.UtcNow.AddMonths(1),
                 IsActive = false,
                 CreatedAt = DateTime.UtcNow,
+                PaymentReference = paymentResponse.Reference,
                 PaymentConfirmed= false,
                 Status = "active"
             };
@@ -155,13 +158,14 @@ namespace ZucoHR.Application.Services
 
             return new InitializeSubscriptionResponseDto
             {
-                AuthorizationUrl = paymentResponse.GetProperty("data").GetProperty("authorization_url").GetString(),
+                AuthorizationUrl = paymentResponse.AuthorizationUrl,
+                Reference = paymentResponse.Reference,
 
                 SubscriptionId =
             subscription.Id
             };
         }
-        public async Task<JsonElement> InitializePayment(
+        public async Task<PaystackInitializeResponse> InitializePayment(
     InitializeSubscriptionPaymentDto dto
 )
         {
@@ -217,7 +221,18 @@ namespace ZucoHR.Application.Services
                 throw new Exception($"Paystack Init Error: {content}");
 
             var data = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(content);
-            return data;
+            var authorizationUrl =
+        data
+            .GetProperty("data")
+            .GetProperty("authorization_url")
+            .GetString();
+            return new PaystackInitializeResponse
+            {
+                AuthorizationUrl =
+            authorizationUrl ?? "",
+
+                Reference = reference
+            };
         }
 
         public async Task<bool> CancelSubscription(int subscriptionId)
