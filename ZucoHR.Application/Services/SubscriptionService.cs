@@ -76,7 +76,7 @@ namespace ZucoHR.Application.Services
 
             subscription.IsActive = true;
             subscription.PaymentConfirmed = true;
-
+            subscription.PaymentReference = reference;
             subscription.Amount = plan.Price;
                
 

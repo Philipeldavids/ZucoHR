@@ -15,7 +15,7 @@ namespace ZucoHR.Controllers
     {
         private readonly ISubscriptionService _subscriptionService;
         private readonly IConfiguration _configuration;
-        public PaystackController(IConfiguration configuration,ISubscriptionService subscriptionService)
+        public PaystackController(IConfiguration configuration, ISubscriptionService subscriptionService)
         {
             _subscriptionService = subscriptionService;
             _configuration = configuration;
@@ -93,16 +93,17 @@ namespace ZucoHR.Controllers
 
             return Ok();
         }
-        [HttpPost("initialize")]
-        public async Task<IActionResult> InitializePayment(
-    InitializeSubscriptionPaymentDto dto
-)
-        {
-            var result =
-                await _subscriptionService
-                    .InitializePayment(dto);
+        //        [HttpPost("initialize")]
+        //        public async Task<IActionResult> InitializePayment(
+        //    InitializeSubscriptionPaymentDto dto
+        //)
+        //        {
+        //            var result =
+        //                await _subscriptionService
+        //                    .InitializePayment(dto);
 
-            return Ok(result);
-        }
+        //            return Ok(result);
+        //        }
+        //    
     }
 }
