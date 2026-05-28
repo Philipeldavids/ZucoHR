@@ -6,23 +6,25 @@ namespace ZucoHR.Controllers
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.EntityFrameworkCore;
     using System.IdentityModel.Tokens.Jwt;
     using System.Security.Claims;
     using ZucoHR.Application.Interfaces;
     using ZucoHR.Domain.DTO;
     using ZucoHR.Domain.Entities;
+    using ZucoHR.Infrastructure.Data;
 
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        private readonly UserManager<User> _userManager;
-
-        public AuthController(UserManager<User> userManager,IAuthService authService)
+        //private readonly UserManager<User> _userManager;
+        private readonly ZucoHrDbContext _context;
+        public AuthController(ZucoHrDbContext context, IAuthService authService)
         {
             _authService = authService;
-            _userManager = userManager;
+            _context = context;
         }
 
         // ✅ Register
@@ -69,28 +71,38 @@ namespace ZucoHR.Controllers
             if (dto.NewPassword != dto.ConfirmPassword)
                 return BadRequest("Passwords do not match");
 
-            var user = await _userManager.FindByIdAsync(userId);
+            var user = await _context.Users
+       .FirstOrDefaultAsync(x =>
+           x.Id == userId
+       );
 
             if (user == null)
                 return NotFound("User not found");
+            // verify current password
+            bool validPassword =
+                BCrypt.Net.BCrypt.Verify(
+                    dto.CurrentPassword,
+                    user.PasswordHash
+                );
 
-            var result = await _userManager.ChangePasswordAsync(
-                user,
-                dto.CurrentPassword,
-                dto.NewPassword
-            );
-
-            if (!result.Succeeded)
+            if (!validPassword)
             {
                 return BadRequest(
-                    result.Errors.Select(x => x.Description)
+                    "Incorrect password"
                 );
             }
 
-            return Ok(new
-            {
-                message = "Password changed successfully"
-            });
+            // hash new password
+            user.PasswordHash =
+                BCrypt.Net.BCrypt.HashPassword(
+                    dto.NewPassword
+                );
+
+            await _context.SaveChangesAsync();
+
+            return Ok(
+                "Password changed successfully"
+            );
         }
 
         // ✅ Login

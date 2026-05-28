@@ -12,6 +12,7 @@ using ZucoHR.Application.Interfaces;
 using ZucoHR.Application.Utilities;
 using ZucoHR.Domain.DTO;
 using ZucoHR.Domain.Entities;
+using ZucoHR.Infrastructure.Data;
 using ZucoHR.Infrastructure.Interfaces;
 using ZucoHR.Shared;
 
@@ -24,12 +25,14 @@ namespace ZucoHR.Application.Services
         private readonly ITenantService _tenantService;
         private readonly IHubContext<NotificationHub> _hub;
         private readonly IEmailService _emailService;
-        public EmployeeService(IEmailService emailService, IEmployeeRepository repository, IUserRepository userRepo, IHubContext<NotificationHub> hub, ITenantService tenantService)
+        private readonly ZucoHrDbContext _context;
+        public EmployeeService(ZucoHrDbContext context,IEmailService emailService, IEmployeeRepository repository, IUserRepository userRepo, IHubContext<NotificationHub> hub, ITenantService tenantService)
         {
             _repository = repository;
             _userRepo = userRepo;
             _tenantService = tenantService;
             _hub = hub;
+            _context = context;
             _emailService = emailService;
         }
 
@@ -47,15 +50,43 @@ namespace ZucoHR.Application.Services
         }
 
        
-        public async Task<Employee> CreateAsync(EmployeeDto dto)
+        public async Task<Employee> CreateAsync(string userId, EmployeeDto dto)
         {
             var orgId = _tenantService.GetTenantId();
             if (dto == null)
                 throw new ArgumentNullException(nameof(dto));
 
+
             //var user = await _userRepo.GetByIdAsync(dto.UserId, orgId);
             var password = PasswordGenerator.Generate(10);
-            
+
+            var user = await _context.Users
+       .FirstOrDefaultAsync(x =>
+           x.Id == userId
+       );
+            if(user != null)
+            {
+                Employee employee = new Employee();
+                employee.Id = user.EmployeeId;
+                employee.OrganizationId = orgId;
+                employee.UserId = user.Id;
+                employee.FirstName = dto.FirstName;
+                employee.LastName = dto.LastName;
+                employee.StartDate = dto.StartDate;
+                employee.Email = dto.Email;
+                employee.Position = dto.Position;
+                employee.BasicSalary = dto.BasicSalary;
+                employee.Allowance = dto.Allowance;
+                employee.AnnualRent = dto.AnnualRent;
+                employee.Department = dto.Department;
+                employee.UpdatedAt = DateTime.UtcNow;
+                employee.EmploymentType = dto.EmploymentType;
+                employee.PhoneNumber = dto.PhoneNumber;
+                //emp.UserId = Guid.NewGuid().ToString();        
+                employee.Status = dto.Status;
+                employee.Location = dto.Location;
+            }
+
             User newuser = new User();
             
             newuser.UserName = dto.Email;
