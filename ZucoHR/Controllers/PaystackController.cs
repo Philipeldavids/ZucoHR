@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Security.Cryptography;
@@ -43,7 +44,7 @@ namespace ZucoHR.Controllers
                 .Replace("-", "")
                 .ToLower();
         }
-
+        [AllowAnonymous]
         [HttpPost("webhook")]
         public async Task<IActionResult> Webhook()
         {
