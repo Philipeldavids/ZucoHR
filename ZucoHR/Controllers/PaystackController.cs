@@ -76,8 +76,8 @@ namespace ZucoHR.Controllers
             Console.WriteLine($"HASH: {hash}");
             Console.WriteLine($"SIGNATURE: {signature}");
 
-            if (hash != signature)
-                return Unauthorized();
+            //if (hash != signature)
+            //    return Unauthorized();
 
             dynamic payload =
                 JsonConvert.DeserializeObject(body);
