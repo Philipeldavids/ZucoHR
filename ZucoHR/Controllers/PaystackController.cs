@@ -46,13 +46,13 @@ namespace ZucoHR.Controllers
         }
 
         [Authorize]
-        [HttpPost("webhook")]
-        public async Task<IActionResult> Webhook(string request)
+        [HttpPost("verify-payment")]
+        public async Task<IActionResult> Webhook([FromBody] VerifyPaymentRequest request)
         {
             try
             {
                 await _subscriptionService
-                    .VerifyAndActivateSubscription(request);
+                    .VerifyAndActivateSubscription(request.Reference);
                 return Ok();
             }
             catch (Exception ex) { 
