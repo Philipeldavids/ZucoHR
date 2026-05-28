@@ -48,14 +48,23 @@ namespace ZucoHR.Controllers
         [HttpPost("webhook")]
         public async Task<IActionResult> Webhook()
         {
+            Request.EnableBuffering();
+
             using var reader =
-                new StreamReader(Request.Body);
+                new StreamReader(
+                    Request.Body,
+                    Encoding.UTF8,
+                    leaveOpen: true
+                );
 
             var body =
                 await reader.ReadToEndAsync();
 
+            Request.Body.Position = 0;
+
             var signature =
-                Request.Headers["x-paystack-signature"].ToString();
+                Request.Headers["x-paystack-signature"]
+                    .ToString();
 
             var secret =
                 _configuration["Paystack:SecretKey"];
@@ -63,24 +72,23 @@ namespace ZucoHR.Controllers
             var hash =
                 ComputeSha512Hash(body, secret);
 
+            Console.WriteLine($"BODY: {body}");
+            Console.WriteLine($"HASH: {hash}");
+            Console.WriteLine($"SIGNATURE: {signature}");
+
             if (hash != signature)
                 return Unauthorized();
 
             dynamic payload =
                 JsonConvert.DeserializeObject(body);
 
-            if (
-                payload.@event ==
-                "charge.success"
-            )
+            if (payload.@event == "charge.success")
             {
                 string reference =
                     payload.data.reference;
 
                 await _subscriptionService
-                    .VerifyAndActivateSubscription(
-                        reference
-                    );
+                    .VerifyAndActivateSubscription(reference);
             }
 
             return Ok();
