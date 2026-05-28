@@ -55,7 +55,7 @@ namespace ZucoHR.Controllers
                 await reader.ReadToEndAsync();
 
             var signature =
-                Request.Headers["x-paystack-signature"];
+                Request.Headers["x-paystack-signature"].ToString();
 
             var secret =
                 _configuration["Paystack:SecretKey"];
