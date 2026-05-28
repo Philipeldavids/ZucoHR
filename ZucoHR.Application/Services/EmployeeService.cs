@@ -85,6 +85,8 @@ namespace ZucoHR.Application.Services
                 //emp.UserId = Guid.NewGuid().ToString();        
                 employee.Status = dto.Status;
                 employee.Location = dto.Location;
+
+                await _repository.AddAsync(employee);
             }
 
             User newuser = new User();
