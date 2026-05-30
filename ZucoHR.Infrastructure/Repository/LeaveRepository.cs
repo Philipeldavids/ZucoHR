@@ -27,7 +27,7 @@ namespace ZucoHR.Infrastructure.Repository
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
 
-            await _context.LeaveRequests.AddAsync(request);
+            _context.LeaveRequests.AddAsync(request);
             await _context.SaveChangesAsync();
             return request;
         }

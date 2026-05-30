@@ -55,6 +55,7 @@ namespace ZucoHR.Application.Services
             var employee = await _employeeRepository.GetByIdAsync(employeeId, orgId);
             if (employee == null)
                 throw new KeyNotFoundException("Employee not found.");
+            var days = end - start;
 
             var leave = new LeaveRequest
             {
@@ -63,6 +64,7 @@ namespace ZucoHR.Application.Services
                 Type = leaveType,
                 StartDate = start,
                 EndDate = end,
+                Days = days.Days + 1,
                 Reason = reason,
                 Status = "Pending",
                 CreatedAt = DateTime.UtcNow,

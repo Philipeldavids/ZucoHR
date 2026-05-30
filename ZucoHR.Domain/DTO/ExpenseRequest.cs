@@ -11,7 +11,7 @@ namespace ZucoHR.Domain.DTO
     public class ExpenseRequest
     {
        
-        public Guid EmployeeId { get; set; }
+        public Guid EmployeeId { get; set; } 
         public string? Title { get; set; }
         public string? Description { get; set; }
 

@@ -68,10 +68,10 @@ namespace ZucoHR.Application.Services
             expense.EmployeeName = employee.FirstName+ " "+ employee.LastName; 
             expense.Description = request.Description;
             expense.Currency = request.Currency;
-            expense.Date = request.Date;
+            expense.Date = request.Date.ToUniversalTime();
             expense.Category = request.Category;
             expense.Amount = request.Amount;
-
+            expense.CreatedAt = DateTime.UtcNow;
             try
             {
                 if (request.Receipt != null)
@@ -106,7 +106,7 @@ namespace ZucoHR.Application.Services
             existing.Amount = updated.Amount;
             existing.Category = updated.Category;
             existing.Currency = updated.Currency;
-            existing.Date = updated.Date;
+            existing.Date = updated.Date.ToUniversalTime();
             existing.EmployeeId = updated.EmployeeId;
 
             try

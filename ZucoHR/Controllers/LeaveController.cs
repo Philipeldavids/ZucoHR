@@ -44,9 +44,10 @@ namespace ZucoHR.Controllers
 
                 if (!result.IsValid)
                     return BadRequest(result.Errors.Select(e => e.ErrorMessage));
-
+                var start = dto.StartDate.ToUniversalTime();
+                var end = dto.EndDate.ToUniversalTime();
                 var employeeId = Guid.Parse(User.FindFirst("employeeId")?.Value ?? throw new UnauthorizedAccessException());
-                var leave = await _leaveService.RequestLeaveAsync(employeeId, dto.Type, dto.StartDate, dto.EndDate, dto.Reason);
+                var leave = await _leaveService.RequestLeaveAsync(employeeId, dto.Type, start, end, dto.Reason);
                 return CreatedAtAction(nameof(GetById), new { id = leave.Id }, leave);
             }
             catch(Exception ex)
