@@ -13,7 +13,7 @@ namespace ZucoHR.Application.Interfaces
     {
         Task<PaginatedResponse<Employee>> GetPagedAsync(int page, int pageSize, Guid orgId);
         Task<Employee?> GetByIdAsync(Guid id, Guid orgId);
-        Task<Employee> CreateAsync(string userId, EmployeeDto e);
+        Task<Employee> CreateAsync(EmployeeDto e);
         Task UpdateAsync(Guid id, EmployeeDto dto);
         Task DeleteAsync(Guid id);
     }

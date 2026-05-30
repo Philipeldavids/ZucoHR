@@ -50,7 +50,7 @@ namespace ZucoHR.Application.Services
         }
 
        
-        public async Task<Employee> CreateAsync(string userId, EmployeeDto dto)
+        public async Task<Employee> CreateAsync(EmployeeDto dto)
         {
             var orgId = _tenantService.GetTenantId();
             if (dto == null)
@@ -60,35 +60,7 @@ namespace ZucoHR.Application.Services
             //var user = await _userRepo.GetByIdAsync(dto.UserId, orgId);
             var password = PasswordGenerator.Generate(10);
 
-            var user = await _context.Users
-       .FirstOrDefaultAsync(x =>
-           x.Id == userId
-       );
-            if(user != null)
-            {
-                Employee employee = new Employee();
-                employee.Id = user.EmployeeId;
-                employee.OrganizationId = orgId;
-                employee.UserId = user.Id;
-                employee.FirstName = dto.FirstName;
-                employee.LastName = dto.LastName;
-                employee.StartDate = dto.StartDate;
-                employee.Email = dto.Email;
-                employee.Position = dto.Position;
-                employee.BasicSalary = dto.BasicSalary;
-                employee.Allowance = dto.Allowance;
-                employee.AnnualRent = dto.AnnualRent;
-                employee.Department = dto.Department;
-                employee.UpdatedAt = DateTime.UtcNow;
-                employee.EmploymentType = dto.EmploymentType;
-                employee.PhoneNumber = dto.PhoneNumber;
-                //emp.UserId = Guid.NewGuid().ToString();        
-                employee.Status = dto.Status;
-                employee.Location = dto.Location;
-
-                await _repository.AddAsync(employee);
-            }
-
+            
             User newuser = new User();
             
             newuser.UserName = dto.Email;

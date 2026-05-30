@@ -148,13 +148,6 @@ namespace ZucoHR.Controllers
         {
             try
             {
-                var claim = User.FindFirst(JwtRegisteredClaimNames.Sub)
-                 ?? User.FindFirst(ClaimTypes.NameIdentifier);
-
-                if (claim == null)
-                    throw new UnauthorizedAccessException("User ID claim missing");
-                var userId = claim.Value;
-
                 var validator = new CreateEmployeeValidator();
                 var result = await validator.ValidateAsync(e);
 
@@ -162,7 +155,7 @@ namespace ZucoHR.Controllers
                     return BadRequest(result.Errors.Select(e => e.ErrorMessage));
 
 
-                var created = await _employeeService.CreateAsync(userId, e);
+                var created = await _employeeService.CreateAsync(e);
                 return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
             }
             catch(Exception ex)
