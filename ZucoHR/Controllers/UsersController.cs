@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ZucoHR.Application.Interfaces;
 using ZucoHR.Application.Services;
 using ZucoHR.Application.Utilities;
 using ZucoHR.Domain.DTO;
 using ZucoHR.Domain.Entities;
+using ZucoHR.Infrastructure.Data;
 
 namespace ZucoHR.Controllers
 {
@@ -15,11 +17,37 @@ namespace ZucoHR.Controllers
     {
         private readonly IUserService _service;
         private readonly ITenantService _tenantService;
+        private readonly ZucoHrDbContext _context;
 
-        public UsersController(IUserService service, ITenantService tenantService)
+        public UsersController(ZucoHrDbContext context,IUserService service, ITenantService tenantService)
         {
             _service = service;
             _tenantService = tenantService;
+            _context = context;
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(
+[FromBody] AdminResetPasswordDto dto)
+        {
+            var user =
+                await _context.Users
+                    .FirstOrDefaultAsync(
+                        x => x.Id == dto.UserId
+                    );
+
+            if (user == null)
+                return NotFound();
+
+            user.PasswordHash =
+                BCrypt.Net.BCrypt.HashPassword(
+                    dto.NewPassword
+                );
+
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
 
         [HttpPost("create")]
