@@ -19,13 +19,13 @@ namespace ZucoHR.Application.Utilities
             var annualPension = annualGross * 0.08m;
 
             // NHF (2.5% of basic)
-            var annualNhf = (basic * 12) * 0.025m;
+            var annualNhf = (basic) * 0.025m;
 
             // CRA
             var annualrr = Math.Min(500000m, annualRent * 0.2m);
             //NHIS
 
-            var annualNhis = (basic * 12) * 0.05m;
+            var annualNhis = (basic) * 0.05m;
 
             var taxable = annualGross - annualrr - annualPension - annualNhf - annualNhis;
             if (taxable < 0) taxable = 0;
