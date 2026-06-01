@@ -68,8 +68,8 @@ namespace ZucoHR.Application.Services
                 OrganizationId = orgId,
                 Month = month,
                 Year = year,
-                PeriodStart = start,
-                PeriodEnd = end,
+                PeriodStart = start.ToUniversalTime(),
+                PeriodEnd = end.ToUniversalTime(),
                 Status = "Draft"
             };
 
