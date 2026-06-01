@@ -75,7 +75,7 @@ namespace ZucoHR.Application.Services
 
             foreach (var emp in employees)
             {
-                var (gross, pension, nhf, nhis, tax, rr, net) =
+                var (monthlygross, pension, nhf, nhis, tax, rr, net) =
                     PayrollCalculator.CalculateMonthly(
                         emp.BasicSalary,
                         emp.Allowance,
@@ -91,7 +91,7 @@ namespace ZucoHR.Application.Services
 
                     BasicSalary = emp.BasicSalary,
                     Allowances = emp.Allowance,
-                    GrossPay = gross,
+                    GrossPay = monthlygross,
                     PayRun = payRun,
                     Employee = emp,                   
                     Pension = pension,
@@ -105,7 +105,7 @@ namespace ZucoHR.Application.Services
                     NetPay = net
                 };
 
-                payRun.TotalGross += gross;
+                payRun.TotalGross += monthlygross;
                 payRun.TotalDeductions += payslip.TotalDeductions;
                 payRun.TotalNet += net;
 

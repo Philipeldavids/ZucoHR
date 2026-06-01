@@ -11,9 +11,9 @@ namespace ZucoHR.Application.Utilities
         public static (decimal gross, decimal pension, decimal nhf, decimal nhis, decimal tax, decimal rr, decimal net)
             CalculateMonthly(decimal basic, decimal allowances, decimal annualRent)
         {
-            var monthlyGross = basic + allowances;
+            var annualGross = basic + allowances;
 
-            var annualGross = monthlyGross * 12;
+            var monthlyGross = annualGross / 12;
 
             // Pension (8%)
             var annualPension = annualGross * 0.08m;
