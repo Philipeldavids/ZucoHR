@@ -28,12 +28,14 @@ namespace ZucoHR.Application.Services
         private readonly ITenantService _tenantService;
         private readonly ZucoHrDbContext _context;
         private readonly IEmailService _emailService;
-        public PayrollService(IEmailService emailService,
+        private readonly INotificationService _notificationService;
+        public PayrollService(INotificationService notificationService,IEmailService emailService,
             IPayrollRepository payrollRepository,
             IEmployeeRepository employeeRepository,
             ILogger<PayrollService> logger, ITenantService tenantService, ZucoHrDbContext context)
         {
             _payrollRepository = payrollRepository;
+            _notificationService = notificationService;
             _employeeRepository = employeeRepository;
             _logger = logger;
             _tenantService = tenantService;
@@ -111,7 +113,11 @@ namespace ZucoHR.Application.Services
 
                 
                 payRun.Payslips.Add(payslip);
-
+                await _notificationService.CreateAsync(
+    emp.UserId.ToString(),
+    "Payroll Generated",
+    $"Your payroll for {month} {year} has been processed."
+);
                 await _emailService.SendEmailAsync(
     new EmailRequest
     {

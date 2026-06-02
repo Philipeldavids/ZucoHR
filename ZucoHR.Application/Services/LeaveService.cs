@@ -89,12 +89,14 @@ namespace ZucoHR.Application.Services
             leave.Status = "Approved";
             leave.ApprovedBy = approverId;
             leave.UpdatedAt = DateTime.UtcNow;
-
-            var employeeId = leave.EmployeeId;
+            var employee = await _employeeRepository.GetByIdAsync(leave.EmployeeId, orgId);
+             if (employee == null)
+                throw new Exception("Employee not found");
+           // var employeeId = leave.EmployeeId;
             await _leaveRepository.UpdateAsync(leave);
             _logger.LogInformation("Leave {LeaveId} approved by {ApproverId}", leaveId, approverId);
             await _notificationService.CreateAsync(
-    employeeId.ToString(),
+    employee.UserId.ToString(),
     "Leave Approved",
     $"Your leave from {leave.StartDate:d} to {leave.EndDate:d} has been approved"
 );
@@ -126,9 +128,18 @@ namespace ZucoHR.Application.Services
             leave.ApprovedBy = approverId;
             leave.Reason += $"\n[Manager Comment]: {comment}";
             leave.UpdatedAt = DateTime.UtcNow;
+            var employee = await _employeeRepository.GetByIdAsync(leave.EmployeeId, orgId);
+            if (employee == null)
+                throw new Exception("Employee not found");
 
             await _leaveRepository.UpdateAsync(leave);
             _logger.LogInformation("Leave {LeaveId} rejected by {ApproverId}. Comment: {Comment}", leaveId, approverId, comment);
+            await _notificationService.CreateAsync(
+    employee.UserId.ToString(),
+    "Leave Rejected",
+    $"Your leave request has been rejected. Reason: {leave.RejectionReason}"
+);
+
             await _emailService.SendEmailAsync(
         new EmailRequest
         {

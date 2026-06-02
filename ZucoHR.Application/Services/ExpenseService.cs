@@ -1,4 +1,6 @@
 ﻿using Azure.Core;
+using CloudinaryDotNet;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -23,11 +25,13 @@ namespace ZucoHR.Application.Services
         private readonly ICloudinaryService _cloudinaryService;
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IEmailService _emailService;
-        public ExpenseService(IEmailService emailService, IExpenseRepository repository,IEmployeeRepository employeeRepository,ICloudinaryService cloudinaryService, ITenantService tenantService)
+        private readonly INotificationService _notificationService;
+        public ExpenseService(IEmailService emailService, INotificationService notificationService,IExpenseRepository repository,IEmployeeRepository employeeRepository,ICloudinaryService cloudinaryService, ITenantService tenantService)
         {
             _repository = repository;
             _tenantService = tenantService;
             _cloudinaryService = cloudinaryService;
+            _notificationService = notificationService;
             _employeeRepository = employeeRepository;
             _emailService = emailService;
         }
@@ -134,11 +138,21 @@ namespace ZucoHR.Application.Services
             if (expense == null)
                 throw new Exception("Expense not found");
 
+            var employee = await _employeeRepository.GetByIdAsync(expense.EmployeeId, orgId);
+
+            if (employee == null)
+                throw new Exception("Employee not found");
+
             expense.Status = "Approved";
             expense.ApprovedAt = DateTime.UtcNow;
             expense.ApprovedBy = approverId;
 
             await _repository.UpdateAsync(expense);
+            await _notificationService.CreateAsync(
+    employee.UserId.ToString(),
+    "Expense Approved",
+    $"Your expense claim of ₦{expense.Amount:N0} has been approved."
+);
         }
 
         public async Task RejectExpense(Guid id, string Reason, Guid approverId)
@@ -148,6 +162,12 @@ namespace ZucoHR.Application.Services
 
             if (expense == null)
                 throw new Exception("Expense not found");
+            var employee = await _employeeRepository.GetByIdAsync(expense.EmployeeId, orgId);
+        
+
+            if (employee == null)
+                throw new Exception("Employee not found");
+
 
             expense.Status = "Rejected";
             expense.Reason = Reason;
@@ -155,7 +175,12 @@ namespace ZucoHR.Application.Services
             expense.ApprovedBy = approverId;
 
             await _repository.UpdateAsync(expense);
-     }
+            await _notificationService.CreateAsync(
+    employee.UserId.ToString(),
+    "Expense Rejected",
+    $"Your expense claim was rejected."
+);
+        }
 
         public async Task DeleteExpense(Guid id)
         {

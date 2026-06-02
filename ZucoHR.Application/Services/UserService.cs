@@ -19,14 +19,17 @@ namespace ZucoHR.Application.Services
         private readonly IUserRepository _repo;
         private readonly ZucoHrDbContext _context;
         private readonly ITenantService _tenantService;
+        private readonly INotificationService _notificationService;
 
         public UserService(
             IUserRepository repo,
+            INotificationService notificationService,
             ZucoHrDbContext context,
             ITenantService tenantService)
         {
             _repo = repo;
             _context = context;
+            _notificationService = notificationService;
             _tenantService = tenantService;
         }
 
@@ -147,7 +150,12 @@ namespace ZucoHR.Application.Services
 
              _context.Users.Update(user);
             await _context.SaveChangesAsync();
-            
+            await _notificationService.CreateAsync(
+    userId.ToString(),
+    "Role Assigned",
+    $"You have been assigned the role {role.Name}."
+);
+
 
             var userRole = new UserRole
             {

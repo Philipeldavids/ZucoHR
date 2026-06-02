@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -11,11 +12,12 @@ namespace ZucoHR.Controllers
 
     [ApiController]
     [Route("api/[controller]")]
-    public class NotificationContoller : ControllerBase
+    [Authorize]
+    public class NotificationController : ControllerBase
     {
         private readonly INotificationService _service;
 
-        public NotificationContoller(INotificationService service)
+        public NotificationController(INotificationService service)
         {
             _service = service;
         }
@@ -56,7 +58,7 @@ namespace ZucoHR.Controllers
             }
         }
 
-        [HttpPost("/{id}")]
+        [HttpPost("{id}")]
         public async Task<IActionResult> MarkAsRead(Guid id)
         {
             try

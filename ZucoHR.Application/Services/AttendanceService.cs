@@ -14,10 +14,12 @@ namespace ZucoHR.Application.Services
     public class AttendanceService : IAttendanceService
     {
         private readonly ZucoHrDbContext _context;
+        private readonly INotificationService _notificationService;
 
-        public AttendanceService(ZucoHrDbContext context)
+        public AttendanceService(ZucoHrDbContext context, INotificationService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
         }
 
         public async Task ClockInAsync(Guid OrgId,
@@ -49,6 +51,15 @@ namespace ZucoHR.Application.Services
                     employee.GracePeriodMinutes);
 
             bool isLate = now > lateThreshold;
+
+            if (isLate)
+            {
+                await _notificationService.CreateAsync(
+    employee.UserId.ToString(),
+    "Late Attendance",
+    "You checked in late today."
+);
+            }
 
             var attendance = new Attendance
             {

@@ -6,7 +6,9 @@ public class NotificationHub : Hub
     {
         if (string.IsNullOrWhiteSpace(userId))
             throw new HubException("Invalid user ID");
-
+        Console.WriteLine(
+           $"User joined: {userId}"
+       );
         await Groups.AddToGroupAsync(
             Context.ConnectionId,
             $"user-{userId}"
