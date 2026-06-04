@@ -11,6 +11,7 @@ namespace ZucoHR.Application.Interfaces
 {
     public interface IUserService
     {
+        Task<PaginatedResponse<User>> GetAllUsers(int page, int pageSize);
         Task<bool> CreateRole(CreateRoleRequest request);
         Task<bool> AddUser(CreateUserRequest request);
         Task<List<Permission>> GetPermissions();

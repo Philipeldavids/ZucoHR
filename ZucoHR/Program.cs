@@ -12,7 +12,7 @@ using Serilog;
 using System.Text;
 using ZucoHR.Application.Interfaces;
 using ZucoHR.Application.Services;
-using ZucoHR.Application.Services.ZucoHR.API.Services.Implementations;
+using ZucoHR.Application.Services;
 using ZucoHR.Application.Utilities;
 using ZucoHR.Domain.Entities;
 using ZucoHR.Infrastructure;

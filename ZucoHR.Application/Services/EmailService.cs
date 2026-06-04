@@ -3,20 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using global::ZucoHR.Application.Interfaces;
+using global::ZucoHR.Domain.DTO;
+using global::ZucoHR.Domain.Entities;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using Microsoft.Extensions.Options;
+using MimeKit;
 
 namespace ZucoHR.Application.Services
 {
-    using global::ZucoHR.Application.Interfaces;
-    using global::ZucoHR.Domain.DTO;
-    using global::ZucoHR.Domain.Entities;
-    using MailKit.Net.Smtp;
-    using MailKit.Security;
-    using Microsoft.Extensions.Options;
-    using MimeKit;
+   
     
 
-    namespace ZucoHR.API.Services.Implementations
-    {
         public class EmailService : IEmailService
         {
             private readonly EmailSettings _settings;
@@ -69,4 +68,3 @@ namespace ZucoHR.Application.Services
             }
         }
     }
-}

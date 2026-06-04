@@ -8,6 +8,7 @@ using ZucoHR.Domain.Entities;
 using ZucoHR.Infrastructure.Data;
 using ZucoHR.Infrastructure.Interfaces;
 using ZucoHR.Shared;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ZucoHR.Infrastructure.Repository
 {
@@ -47,6 +48,27 @@ namespace ZucoHR.Infrastructure.Repository
             await _ctx.SaveChangesAsync();
 
             return true;
+        }
+
+        public async Task<PaginatedResponse<User>> GetAllUsers(int page, int pageSize)
+        {
+            var users =  _ctx.Users;
+
+            var totalCount = await users.CountAsync();
+            var items = await users
+                .OrderBy(e => e.Name)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PaginatedResponse<User>
+            {
+                Data = items,
+                Total = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
+            
         }
     }
     }

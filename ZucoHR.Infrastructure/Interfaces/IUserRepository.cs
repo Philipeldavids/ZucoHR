@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ZucoHR.Domain.Entities;
+using ZucoHR.Shared;
 
 namespace ZucoHR.Infrastructure.Interfaces
 {
     public interface IUserRepository
     {
+        Task<PaginatedResponse<User>> GetAllUsers(int page, int pageSize);
         Task<bool> CreateRole(Role role);
         Task<List<Permission>> GetPermission();
         Task<List<Role>> GetRoles(Guid OrgId);

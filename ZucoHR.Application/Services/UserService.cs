@@ -130,7 +130,11 @@ namespace ZucoHR.Application.Services
 
 
         }
-
+        public async Task<PaginatedResponse<User>> GetAllUsers(int page, int pageSize)
+        {
+            var users = await _repo.GetAllUsers(page, pageSize);
+            return users;
+        }
         public async Task AssignRole(string userId, string roleId)
         {
             var exists = await _context.UserRoles

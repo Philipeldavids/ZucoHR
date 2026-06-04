@@ -26,6 +26,13 @@ namespace ZucoHR.Controllers
             _context = context;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAllUsers(int page, int pageSize) {
+            var users = _service.GetAllUsers(page, pageSize);
+
+            return Ok(users);
+        
+        }
         [Authorize(Roles = "Admin")]
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword(
