@@ -26,9 +26,9 @@ namespace ZucoHR.Controllers
             _context = context;
         }
 
-        [HttpGet]
+        [HttpGet("GetAllUsers")]
         public async Task<IActionResult> GetAllUsers(int page, int pageSize) {
-            var users = _service.GetAllUsers(page, pageSize);
+            var users = await _service.GetAllUsers(page, pageSize);
 
             return Ok(users);
         
@@ -132,7 +132,14 @@ namespace ZucoHR.Controllers
             var users = await _service.GetUsers(page, pageSize);
             return Ok(users);
         }
+        [HttpDelete("{Id}")]
+        [Authorize(Roles = ("Admin, HR, HR Manager"))]
 
+        public async Task<IActionResult> Delete(string Id)
+        {
+            await _service.DeleteAsync(Id);
+            return Ok();
+        }
         // ✅ Assign role
         [HttpPost("assign-role")]
         [Authorize(Roles = ("Admin, HR, HR Manager"))]

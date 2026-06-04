@@ -15,6 +15,7 @@ namespace ZucoHR.Infrastructure.Interfaces
         Task<List<Permission>> GetPermission();
         Task<List<Role>> GetRoles(Guid OrgId);
         Task UpdateAsync(User user);
+        Task Delete(User user);
         Task<User?> GetByEmailAsync(string email);
         Task<User?> GetByIdAsync(string id, Guid OrgId);
         Task<User> AddAsync(User user);

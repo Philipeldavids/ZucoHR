@@ -25,7 +25,8 @@ namespace ZucoHR.Infrastructure.Repository
             {
                 return await _ctx.Users.Include(u => u.RefreshTokens).FirstOrDefaultAsync(u => u.Email == email);
             }
-            public async Task<User?> GetByIdAsync(string id, Guid OrgId) => await _ctx.Users.Where(x=>x.Id == id && x.OrganizationId == OrgId).FirstOrDefaultAsync();
+            public async Task<User?> GetByIdAsync(string id, Guid OrgId) => await _ctx.Users.Where(x=>x.Id == id && x.OrganizationId == OrgId)
+            .Include(x=>x.RefreshTokens).FirstOrDefaultAsync();
             public async Task<User> AddAsync(User user) { _ctx.Users.Add(user); await _ctx.SaveChangesAsync(); return user; }
             public async Task UpdateAsync(User user) { _ctx.Users.Update(user); await _ctx.SaveChangesAsync(); }
 
@@ -50,6 +51,11 @@ namespace ZucoHR.Infrastructure.Repository
             return true;
         }
 
+        public async Task Delete(User user)
+        {
+            _ctx.Users.Remove(user);
+            await _ctx.SaveChangesAsync();
+        }
         public async Task<PaginatedResponse<User>> GetAllUsers(int page, int pageSize)
         {
             var users =  _ctx.Users;

@@ -226,7 +226,12 @@ namespace ZucoHR.Infrastructure.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            
+            //modelBuilder.Entity<User>(entity =>
+            //{
+            //    entity.HasOne(x => x.RefreshTokens);
+                
+            //}
+            //    );
 
             modelBuilder.Entity<OnboardingTask>(entity =>
             {

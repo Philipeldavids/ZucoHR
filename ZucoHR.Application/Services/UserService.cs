@@ -203,5 +203,15 @@ namespace ZucoHR.Application.Services
 
             await _repo.UpdateAsync(user);
         }
+
+        public async Task DeleteAsync(string userId)
+        {
+            var orgId = _tenantService.GetTenantId();
+            var user = await _repo.GetByIdAsync(userId, orgId);
+
+            if (user == null) throw new Exception("User does not exist");
+
+            _repo.Delete(user);
+        }
     }
 }
