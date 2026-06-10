@@ -121,7 +121,7 @@ namespace ZucoHR.Application.Services
                 Category = dto.Category,
                 Status = "pending",
                 OrganizationId = orgId,
-                DueDate = dto.DueDate
+                DueDate = dto.DueDate.ToUniversalTime()
             };
 
             _context.OnboardingTasks.Add(task);
@@ -168,7 +168,7 @@ namespace ZucoHR.Application.Services
                 task.Status = dto.Status;
 
             if (dto.DueDate.HasValue)
-                task.DueDate = dto.DueDate.Value;
+                task.DueDate = dto.DueDate.Value.ToUniversalTime();
 
             task.CompletedAt = dto.CompletedAt;
 
