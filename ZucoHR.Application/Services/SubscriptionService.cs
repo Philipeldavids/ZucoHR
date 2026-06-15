@@ -74,7 +74,7 @@ namespace ZucoHR.Application.Services
 
             subscription.EndDate =
                         DateTime.UtcNow
-                            .AddMonths(1);
+                            .AddYears(1);
 
             subscription.IsActive = true;
             subscription.PaymentConfirmed = true;
@@ -144,7 +144,7 @@ namespace ZucoHR.Application.Services
                 OrganizationId = Guid.Parse(dto.OrganizationId),
                 SubscriptionId = dto.PlanId,
                 StartDate = DateTime.UtcNow,
-                EndDate = DateTime.UtcNow.AddMonths(1),
+                EndDate = DateTime.UtcNow.AddYears(1),
                 IsActive = false,
                 CreatedAt = DateTime.UtcNow,
                 PaymentReference = paymentResponse.Reference,

@@ -148,21 +148,21 @@ namespace ZucoHR.Infrastructure
             {
                 
                 Name = "Starter",
-                Price = 20000
+                Price = 350000
             };
 
             var growth = new SubscriptionPlan
             {
                 
                 Name = "Growth",
-                Price = 50000
+                Price = 500000
             };
 
             var enterprise = new SubscriptionPlan
             {
                 
                 Name = "Enterprise",
-                Price = 150000
+                Price = 50000000
             };
 
             await context.SubscriptionPlans.AddRangeAsync(starter, growth, enterprise);
