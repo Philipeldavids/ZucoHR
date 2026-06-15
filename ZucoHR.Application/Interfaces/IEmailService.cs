@@ -10,5 +10,9 @@ namespace ZucoHR.Application.Interfaces
     public interface IEmailService
     {
         Task SendEmailAsync(EmailRequest request);
+
+        Task SendBookDemoEmail(
+       BookDemoDto dto
+   );
     }
 }
