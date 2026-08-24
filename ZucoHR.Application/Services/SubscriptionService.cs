@@ -30,6 +30,87 @@ namespace ZucoHR.Application.Services
             _context = context;
             _configuration = configuration;
         }
+
+        public async Task<OrganizationSubscription> ActivateFreeTrial(
+    Guid organizationId)
+        {
+            var now = DateTime.UtcNow;
+
+            // Check if organization currently has an active subscription
+            var activeSubscription =
+                await _context.OrgSubscription
+                    .FirstOrDefaultAsync(x =>
+                        x.OrganizationId == organizationId &&
+                        x.IsActive &&
+                        x.StartDate <= now &&
+                        x.EndDate >= now
+                    );
+
+            if (activeSubscription != null)
+            {
+                throw new InvalidOperationException(
+                    "Organization already has an active subscription."
+                );
+            }
+
+            // Get the free trial plan
+            var freePlan =
+                await _context.SubscriptionPlans
+                    .FirstOrDefaultAsync(x =>
+                        x.Name == "1 Month Free"
+                    );
+
+            if (freePlan == null)
+            {
+                throw new InvalidOperationException(
+                    "Free trial plan has not been configured."
+                );
+            }
+
+            // Check whether organization has EVER used the free trial
+            var trialAlreadyUsed =
+                await _context.OrgSubscription
+                    .AnyAsync(x =>
+                        x.OrganizationId == organizationId &&
+                        x.SubscriptionId == freePlan.Id
+                    );
+
+            if (trialAlreadyUsed)
+            {
+                throw new InvalidOperationException(
+                    "Your organization has already used its free trial."
+                );
+            }
+
+            var subscription = new OrganizationSubscription
+            {
+                OrganizationId = organizationId,
+
+                SubscriptionId = freePlan.Id,
+
+                StartDate = now,
+
+                EndDate = now.AddMonths(1),
+
+                Status = "active",
+
+                IsActive = true,
+
+                PaymentConfirmed = true,
+
+                PaymentReference = "FREE_TRIAL",
+
+                Amount = 0,
+
+                CreatedAt = now
+            };
+
+            _context.OrgSubscription.Add(subscription);
+
+            await _context.SaveChangesAsync();
+
+            return subscription;
+        }
         public async Task VerifyAndActivateSubscription(
     string reference
 )

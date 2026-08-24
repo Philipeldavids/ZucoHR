@@ -5,11 +5,16 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using ZucoHR.Domain.DTO;
+using ZucoHR.Domain.Entities;
 
 namespace ZucoHR.Application.Interfaces
 {
     public interface ISubscriptionService
     {
+
+        Task<OrganizationSubscription> ActivateFreeTrial(
+    Guid organizationId
+);
         Task<IEnumerable<SubscriptionResponseDto>> GetOrganizationSubscriptions(Guid organizationId);
         Task VerifyAndActivateSubscription(
     string reference

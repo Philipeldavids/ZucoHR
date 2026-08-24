@@ -144,6 +144,11 @@ namespace ZucoHR.Infrastructure
         {
             var features = await context.Features.ToListAsync();
 
+            var freePlan = new SubscriptionPlan
+            {
+                Name = "1 month Free Trial",
+                Price = 0
+            };
             var starter = new SubscriptionPlan
             {
                 

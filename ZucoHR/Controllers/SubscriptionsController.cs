@@ -115,6 +115,29 @@ namespace ZucoHR.Controllers
 
             return Ok(result);
         }
+
+        [HttpPost("free-trial")]
+        public async Task<IActionResult> ActivateFreeTrial()
+        {
+            var organizationId = _tenantService.GetTenantId();
+
+            var result =
+                await _subscriptionService
+                    .ActivateFreeTrial(organizationId);
+
+            return Ok(new SubscriptionDto
+            {
+                Id = result.Id,
+                PlanName = result.Plan?.Name ?? "1 Month Free",
+                Price = result.Amount,
+                StartDate = result.StartDate,
+                EndDate = result.EndDate,
+                Status = result.Status,
+                IsActive = result.IsActive
+            });
+
+            //return Ok(result);
+        }
     }
 }
     
