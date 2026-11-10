@@ -153,6 +153,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<TenantContext>();
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IAccessService, AccessService>();
+builder.Services.AddScoped<ISuperAdminService, SuperAdminService>();
 
 var cloudinarySettings = builder.Configuration.GetSection("Cloudinary").Get<CloudinarySettings>();
 // Initialize Cloudinary with the settings

@@ -74,28 +74,45 @@ namespace ZucoHR.Application.Services
             return await _users.AddAsync(user);
         }
 
-        public async Task<(string accessToken, string refreshToken, User user, Organization organization)> SignInAsync(string email, string password)
+        public async Task<(
+     string accessToken,
+     string refreshToken,
+     User user,
+     Organization organization)> SignInAsync(
+         string email,
+         string password)
         {
             var user = await _users.GetByEmailAsync(email);
 
-            var permission =await _context.UserRoles.SelectMany(ur => ur.Role.RolePermissions)
-                            .Select(rp => rp.Permission.Code)
-                            .Distinct()
-                            .ToListAsync();
-
-            
-
-            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            if (user == null ||
+                !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            {
                 throw new UnauthorizedAccessException("Invalid credentials");
+            }
+
             if (!user.IsActive)
-                throw new UnauthorizedAccessException("User is currently Inactive");
-            user.Permissions = permission;
+            {
+                throw new UnauthorizedAccessException(
+                    "User is currently Inactive");
+            }
+
+            // Retrieve permissions belonging only to this user.
+            var permissions = await _context.UserRoles
+                .Where(ur => ur.UserId == user.Id)
+                .SelectMany(ur => ur.Role.RolePermissions)
+                .Select(rp => rp.Permission.Code)
+                .Distinct()
+                .ToListAsync();
+
+            user.Permissions = permissions;
+
             var org = await _org.GetOrganizationByid(user.OrganizationId);
+
             if (org == null)
                 throw new NullReferenceException("Organization not found");
+
             var access = _tokenGenerator.GenerateToken(user);
             var refresh = await GenerateAndStoreRefreshToken(user);
-            
 
             return (access, refresh, user, org);
         }

@@ -17,21 +17,39 @@ namespace ZucoHR.Infrastructure
     ZucoHrDbContext context,
     Guid organizationId)
         {
-            if (context.Roles.Any(r => r.OrganizationId == organizationId))
-                return;
-
-            var roles = new List<Role>
-    {
-        new() { Id = Guid.NewGuid().ToString(), Name = "Admin", OrganizationId = organizationId },
-        new() {  Id = Guid.NewGuid().ToString(), Name = "HR", OrganizationId = organizationId },
-        new() {  Id = Guid.NewGuid().ToString(), Name = "Manager", OrganizationId = organizationId },
-        new() { Id = Guid.NewGuid().ToString(), Name = "Employee", OrganizationId = organizationId }
+            var defaultRoles = new[]
+            {
+        "Admin",
+        "HR",
+        "Manager",
+        "Employee"
     };
 
-            await context.Roles.AddRangeAsync(roles);
+            var existingRoles = await context.Roles
+                .Where(r => r.OrganizationId == organizationId)
+                .Select(r => r.Name)
+                .ToListAsync();
+
+            var rolesToCreate = defaultRoles
+                .Where(name => !existingRoles.Contains(
+                    name,
+                    StringComparer.OrdinalIgnoreCase))
+                .Select(name => new Role
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = name,
+                    NormalizedName = name.ToUpperInvariant(),
+                    OrganizationId = organizationId
+                })
+                .ToList();
+
+            if (!rolesToCreate.Any())
+                return;
+
+            await context.Roles.AddRangeAsync(rolesToCreate);
             await context.SaveChangesAsync();
 
-            await AssignDefaultPermissions(context, roles);
+            await AssignDefaultPermissions(context, rolesToCreate);
         }
         private static async Task AssignDefaultPermissions(
      ZucoHrDbContext context,

@@ -10,7 +10,7 @@ using ZucoHR.Domain.Entities;
 
 namespace ZucoHR.Infrastructure.Data
 {
-    public class ZucoHrDbContext : IdentityDbContext<User>
+    public class ZucoHrDbContext : IdentityDbContext<User, Role, string>
     {
         public ZucoHrDbContext(DbContextOptions<ZucoHrDbContext> options) : base(options)
         { }
@@ -49,7 +49,12 @@ namespace ZucoHR.Infrastructure.Data
 
            // modelBuilder.Entity<Shift>().HasKey(s => s.Id);
             modelBuilder.Entity<Attendance>().HasKey(a => a.Id);
-            
+            modelBuilder.Entity<User>()
+    .HasOne(u => u.Organization)
+    .WithMany(o => o.Users)
+    .HasForeignKey(u => u.OrganizationId)
+    .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<PlanFeature>().HasKey(p => p.Id);
             modelBuilder.Entity<Organization>().HasKey(o => o.Id);
             //modelBuilder.Entity<Role>().HasKey(o => o.Id);
