@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,103 @@ using ZucoHR.Infrastructure.Data;
 
 namespace ZucoHR.Infrastructure
 {
+
+
+   
+
+
+    public static class SuperAdminSeeder
+    {
+        public static async Task SeedAsync(
+            ZucoHrDbContext context,
+            IConfiguration configuration)
+        {
+            var email = configuration["BootstrapSuperAdmin:Email"];
+            var password = configuration["BootstrapSuperAdmin:Password"];
+            var name = configuration["BootstrapSuperAdmin:Name"]
+                       ?? "Platform Administrator";
+
+            if (string.IsNullOrWhiteSpace(email) ||
+                string.IsNullOrWhiteSpace(password))
+            {
+                throw new InvalidOperationException(
+                    "Bootstrap Super Admin credentials are not configured.");
+            }
+
+            if (password.Length < 12)
+            {
+                throw new InvalidOperationException(
+                    "Bootstrap Super Admin password must be at least 12 characters.");
+            }
+
+            email = email.Trim();
+
+            // Find or create the platform organization.
+            var organization = await context.Organizations
+                .FirstOrDefaultAsync(o => o.Slug == "zucohr-platform");
+
+            if (organization == null)
+            {
+                organization = new Organization
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "ZucoHR Platform",
+                    Slug = "zucohr-platform",
+                    CurrencyCode = "NGN",
+                    CurrencySymbol = "₦",
+                    Timezone = "Africa/Lagos",
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                context.Organizations.Add(organization);
+                await context.SaveChangesAsync();
+            }
+
+            // Check whether this account already exists.
+            var existingUser = await context.Users
+                .FirstOrDefaultAsync(u => u.Email == email);
+
+            if (existingUser != null)
+            {
+                if (!string.Equals(
+                    existingUser.Role,
+                    "SuperAdmin",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException(
+                        "The configured email already belongs to another user. " +
+                        "No automatic role promotion was performed.");
+                }
+
+                // Do not reset an existing administrator's password on startup.
+                return;
+            }
+
+            var user = new User
+            {
+                Id = Guid.NewGuid().ToString(),
+                UserName = email,
+                NormalizedUserName = email.ToUpperInvariant(),
+                Email = email,
+                NormalizedEmail = email.ToUpperInvariant(),
+                EmailConfirmed = true,
+
+                Name = name,
+                OrganizationId = organization.Id,
+
+                Role = "SuperAdmin",
+                IsActive = true,
+
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+
+                SecurityStamp = Guid.NewGuid().ToString(),
+                ConcurrencyStamp = Guid.NewGuid().ToString()
+            };
+
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+        }
+    }
     public static class SeedData
     {
         public static async Task SeedRolesForOrganization(

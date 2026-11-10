@@ -12,7 +12,6 @@ using Serilog;
 using System.Text;
 using ZucoHR.Application.Interfaces;
 using ZucoHR.Application.Services;
-using ZucoHR.Application.Services;
 using ZucoHR.Application.Utilities;
 using ZucoHR.Domain.Entities;
 using ZucoHR.Infrastructure;
@@ -224,6 +223,7 @@ using (var scope = app.Services.CreateScope())
     
     ctx.Database.Migrate();
     await SeedData.Initialize(ctx);
+    await SuperAdminSeeder.SeedAsync(ctx, app.Configuration);
 }
 app.MapHub<NotificationHub>("/hubs/notifications");
 // Configure the HTTP request pipeline.
