@@ -111,18 +111,38 @@ namespace ZucoHR.Controllers
         {
             try
             {
-                var (accessToken, refreshToken, user, org) = await _authService.SignInAsync(
-                    request.Email,
-                    request.Password
-                );
+                var result = await _authService.SignInAsync(
+    request.Email,
+    request.Password
+);
 
-                return Ok(new AuthResponse
+                var response = new AuthResponseDto
                 {
-                    AccessToken = accessToken,
-                    RefreshToken = refreshToken,
-                    User = user,
-                    Organization = org
-                });
+                    AccessToken = result.accessToken,
+                    RefreshToken = result.refreshToken,
+
+                    User = new UserResponseDto
+                    {
+                        Id = result.user.Id,
+                        Name = result.user.Name,
+                        Email = result.user.Email,
+                        Role = result.user.Role,
+                        IsActive = result.user.IsActive,
+                        OrganizationId = result.user.OrganizationId
+                    },
+
+                    Organization = new OrganizationResponseDto
+                    {
+                        Id = result.organization.Id,
+                        Name = result.organization.Name,
+                        Slug = result.organization.Slug,
+                        CurrencyCode = result.organization.CurrencyCode,
+                        CurrencySymbol = result.organization.CurrencySymbol,
+                        Timezone = result.organization.Timezone
+                    }
+                };
+
+                return Ok(response);
             }
             catch (Exception ex)
             {
