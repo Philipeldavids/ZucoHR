@@ -43,9 +43,85 @@ namespace ZucoHR.Application.Services
 
         public async Task<List<SuperAdminCompanyDto>> GetCompaniesAsync()
         {
-            return await _context.Organizations
+            var now = DateTime.UtcNow;
+
+            var organizations = await _context.Organizations
                 .AsNoTracking()
-                .Select(o => new SuperAdminCompanyDto
+                .Select(o => new
+                {
+                    o.Id,
+                    o.Name,
+                    o.Slug,
+                    o.CurrencyCode,
+                    o.CreatedAt,
+
+                    TotalUsers = _context.Users.Count(u =>
+                        u.OrganizationId == o.Id),
+
+                    ActiveUsers = _context.Users.Count(u =>
+                        u.OrganizationId == o.Id &&
+                        u.IsActive),
+
+                    Subscription = _context.OrgSubscription
+                        .Where(s => s.OrganizationId == o.Id)
+                        .OrderByDescending(s => s.CreatedAt)
+                        .ThenByDescending(s => s.Id)
+                        .Select(s => new
+                        {
+                            PlanName = s.Plan != null ? s.Plan.Name : null,
+                            s.Status,
+                            s.StartDate,
+                            s.EndDate,
+                            s.Amount,
+                            s.IsActive,
+                            s.PaymentConfirmed
+                        })
+                        .FirstOrDefault()
+                })
+                .OrderBy(o => o.Name)
+                .ToListAsync();
+
+            return organizations.Select(o =>
+            {
+                var subscription = o.Subscription;
+                string? subscriptionStatus = null;
+
+                if (subscription != null)
+                {
+                    var storedStatus = subscription.Status?.Trim();
+
+                    if (!subscription.PaymentConfirmed ||
+                        string.Equals(storedStatus, "pending",
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        subscriptionStatus = "Pending";
+                    }
+                    else if (string.Equals(storedStatus, "cancelled",
+                                 StringComparison.OrdinalIgnoreCase) ||
+                             string.Equals(storedStatus, "canceled",
+                                 StringComparison.OrdinalIgnoreCase))
+                    {
+                        subscriptionStatus = "Cancelled";
+                    }
+                    else if (!subscription.IsActive)
+                    {
+                        subscriptionStatus = "Inactive";
+                    }
+                    else if (subscription.EndDate < now)
+                    {
+                        subscriptionStatus = "Expired";
+                    }
+                    else if (subscription.StartDate > now)
+                    {
+                        subscriptionStatus = "Scheduled";
+                    }
+                    else
+                    {
+                        subscriptionStatus = "Active";
+                    }
+                }
+
+                return new SuperAdminCompanyDto
                 {
                     Id = o.Id,
                     Name = o.Name,
@@ -53,18 +129,18 @@ namespace ZucoHR.Application.Services
                     CurrencyCode = o.CurrencyCode,
                     CreatedAt = o.CreatedAt,
 
-                    TotalUsers = _context.Users
-                        .Count(u => u.OrganizationId == o.Id),
+                    TotalUsers = o.TotalUsers,
+                    ActiveUsers = o.ActiveUsers,
 
-                    ActiveUsers = _context.Users
-                        .Count(u =>
-                            u.OrganizationId == o.Id &&
-                            u.IsActive)
-                })
-                .OrderBy(o => o.Name)
-                .ToListAsync();
+                    SubscriptionPlanName = subscription?.PlanName,
+                    SubscriptionStatus = subscriptionStatus,
+                    SubscriptionExpiryDate = subscription?.EndDate,
+                    SubscriptionAmount = subscription?.Amount,
+                    SubscriptionIsActive = subscription?.IsActive,
+                    SubscriptionPaymentConfirmed = subscription?.PaymentConfirmed
+                };
+            }).ToList();
         }
-
         public async Task<List<SuperAdminUserDto>> GetUsersAsync()
         {
             return await _context.Users

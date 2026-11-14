@@ -38,39 +38,53 @@ namespace ZucoHR.Controllers
 
             return Ok(result);
         }
+
         [HttpGet("status")]
-        public async Task<IActionResult> GetStatus( )
+        public async Task<IActionResult> GetStatus()
         {
             var organizationId = _tenantService.GetTenantId();
-
             var now = DateTime.UtcNow;
 
-            var subscription =
-                await _context.OrgSubscription
-                    .Include(x => x.Plan)
-                    .FirstOrDefaultAsync(x =>
-                        x.OrganizationId == organizationId &&
-                        x.IsActive &&
-                        x.PaymentConfirmed &&
-                        x.StartDate <= now &&
-                        x.EndDate >= now
-                    );
+            var subscription = await _context.OrgSubscription
+                .Include(x => x.Plan)
+                .Where(x => x.OrganizationId == organizationId)
+                .OrderByDescending(x => x.CreatedAt)
+                .ThenByDescending(x => x.Id)
+                .FirstOrDefaultAsync(x =>
+                    x.IsActive &&
+                    x.PaymentConfirmed &&
+                    x.StartDate <= now &&
+                    x.EndDate >= now
+                );
 
             if (subscription == null)
             {
                 return Ok(new
                 {
-                    active = false
+                    active = false,
+                    plan = (string?)null,
+                    startDate = (DateTime?)null,
+                    endDate = (DateTime?)null,
+                    amount = (decimal?)null,
+                    status = "No Active Subscription",
+                    paymentConfirmed = false
                 });
             }
 
             return Ok(new
             {
                 active = true,
-                plan = subscription.Plan.Name,
-                endDate = subscription.EndDate
+                plan = subscription.Plan != null
+                    ? subscription.Plan.Name
+                    : null,
+                startDate = subscription.StartDate,
+                endDate = subscription.EndDate,
+                amount = subscription.Amount,
+                status = subscription.Status,
+                paymentConfirmed = subscription.PaymentConfirmed
             });
         }
+
         [HttpGet("active")]
         public async Task<IActionResult> GetActiveSubscription()
         {

@@ -47,7 +47,26 @@ namespace ZucoHR.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
-           // modelBuilder.Entity<Shift>().HasKey(s => s.Id);
+            // Allow the same role name in different organisations.
+            // Role names must remain unique within each organisation.
+            modelBuilder.Entity<Role>(entity =>
+            {
+                // Override ASP.NET Identity's globally unique role-name index.
+                entity.HasIndex(r => r.NormalizedName)
+                    .HasDatabaseName("RoleNameIndex")
+                    .IsUnique(false);
+
+                // Enforce uniqueness within an organisation.
+                entity.HasIndex(r => new
+                {
+                    r.OrganizationId,
+                    r.NormalizedName
+                })
+                .HasDatabaseName("RoleNameOrganizationIndex")
+                .IsUnique();
+            });
+
+            // modelBuilder.Entity<Shift>().HasKey(s => s.Id);
             modelBuilder.Entity<Attendance>().HasKey(a => a.Id);
             modelBuilder.Entity<User>()
     .HasOne(u => u.Organization)

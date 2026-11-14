@@ -25,6 +25,12 @@ namespace ZucoHR.Domain.DTO
         public DateTime CreatedAt { get; set; }
         public int TotalUsers { get; set; }
         public int ActiveUsers { get; set; }
+        public string? SubscriptionPlanName { get; set; }
+        public string? SubscriptionStatus { get; set; }
+        public DateTime? SubscriptionExpiryDate { get; set; }
+        public decimal? SubscriptionAmount { get; set; }
+        public bool? SubscriptionIsActive { get; set; }
+        public bool? SubscriptionPaymentConfirmed { get; set; }
     }
 
     public class SuperAdminUserDto

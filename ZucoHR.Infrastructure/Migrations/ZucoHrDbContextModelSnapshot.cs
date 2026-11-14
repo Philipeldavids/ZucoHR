@@ -1020,8 +1020,11 @@ namespace ZucoHR.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedName")
-                        .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
+
+                    b.HasIndex("OrganizationId", "NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameOrganizationIndex");
 
                     b.ToTable("AspNetRoles", (string)null);
                 });
